@@ -1,0 +1,4 @@
+﻿[*.vb]
+
+# S3385: "Exit" statements should not be used
+dotnet_diagnostic.S3385.severity = none
