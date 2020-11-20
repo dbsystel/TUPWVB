@@ -34,6 +34,7 @@ Public NotInheritable Class Base32Encoding
    Private Const ERROR_TEXT_INVALID_BYTE_VALUE As String = "Byte is not a valid Base32 value"
    Private Const ERROR_TEXT_INVALID_CHARACTER As String = "Character is not a valid Base32 character"
    Private Const ERROR_TEXT_INVALID_STRING_LENGTH As String = "Invalid Base32 string length"
+   Private Const ERROR_DESTINATION_TOO_SMALL As String = "Buffer too small"
 #End Region
 
 #Region "Processing constants"
@@ -125,14 +126,28 @@ Public NotInheritable Class Base32Encoding
 #Region "Public methods"
 #Region "Decode methods"
    ''' <summary>
-   ''' Decodes a Base32 string into a byte array.
+   ''' Decodes a Base32 string into a new byte array.
    ''' </summary>
    ''' <param name="encodedValue">The Base32 string to decode.</param>
    ''' <returns>The decoded Base32 string as a byte array.</returns>
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
    Public Shared Function Decode(encodedValue As String) As Byte()
-      Return DecodeWorker(encodedValue, RFC_4648_CHAR_TO_VALUE)
+      Return DecodeNewBufferWithMapping(encodedValue, RFC_4648_CHAR_TO_VALUE)
+   End Function
+
+   ''' <summary>
+   ''' Decodes a Base32 string into an existing byte array.
+   ''' </summary>
+   ''' <param name="encodedValue">The Base32 string to decode.</param>
+   ''' <param name="destinationBuffer">Byte array where the decoded values are placed.</param>
+   ''' <returns>The length of the bytes written into the destination buffer.</returns>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
+   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   Public Shared Function Decode(encodedValue As String, destinationBuffer As Byte()) As Integer
+#Disable Warning CA1062 ' Validate arguments of public methods
+      Return DecodeExistingBufferWithMapping(encodedValue, destinationBuffer, RFC_4648_CHAR_TO_VALUE)   ' destinationBuffer is checked in the called method
+#Enable Warning CA1062 ' Validate arguments of public methods
    End Function
 
    ''' <summary>
@@ -143,7 +158,21 @@ Public NotInheritable Class Base32Encoding
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid spell-safe Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
    Public Shared Function DecodeSpellSafe(encodedValue As String) As Byte()
-      Return DecodeWorker(encodedValue, SPELL_SAFE_CHAR_TO_VALUE)
+      Return DecodeNewBufferWithMapping(encodedValue, SPELL_SAFE_CHAR_TO_VALUE)
+   End Function
+
+   ''' <summary>
+   ''' Decodes a spell-safe Base32 string into an existing byte array.
+   ''' </summary>
+   ''' <param name="encodedValue">The Base32 string to decode.</param>
+   ''' <param name="destinationBuffer">Byte array where the decoded values are placed.</param>
+   ''' <returns>The length of the bytes written into the destination buffer.</returns>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
+   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   Public Shared Function DecodeSpellSafe(encodedValue As String, destinationBuffer As Byte()) As Integer
+#Disable Warning CA1062 ' Validate arguments of public methods
+      Return DecodeExistingBufferWithMapping(encodedValue, destinationBuffer, SPELL_SAFE_CHAR_TO_VALUE)   ' destinationBuffer is checked in the called method
+#Enable Warning CA1062 ' Validate arguments of public methods
    End Function
 #End Region
 
@@ -194,64 +223,87 @@ Public NotInheritable Class Base32Encoding
 #Region "Internal encode and decode methods"
 #Region "Decode methods"
    ''' <summary>
+   ''' Decode an encoded value to a New byte array with a specified mapping
+   ''' </summary>
+   ''' <param name="encodedValue">Encoded value to decode.</param>
+   ''' <param name="mapCharToByte">Mapping table to use.</param>
+   ''' <returns>Newly created byte array with the decoded bytes.</returns>
+   Private Shared Function DecodeNewBufferWithMapping(encodedValue As String, mapCharToByte As Byte()) As Byte()
+      Dim byteCount As Integer = CheckEncodedValue(encodedValue)
+
+      Dim result As Byte() = New Byte(0 To byteCount - 1) {}
+
+      If byteCount > 0 Then _
+         DecodeWorker(encodedValue, result, byteCount, mapCharToByte)
+
+      Return result
+   End Function
+
+   ''' <summary>
+   ''' Decodes an encoded value to an existing byte array with a specified mapping.
+   ''' </summary>
+   ''' <param name="encodedValue">Encoded value to decode.</param>
+   ''' <param name="destinationBuffer">Byte array where the decoded values are placed.</param>
+   ''' <param name="mapCharToByte">Mapping table to use.</param>
+   ''' <returns>Number of bytes in the <paramref name="destinationBuffer"/> that are filled.</returns>
+   Private Shared Function DecodeExistingBufferWithMapping(encodedValue As String, destinationBuffer As Byte(), mapCharToByte As Byte()) As Integer
+      Dim byteCount As Integer = CheckEncodedValue(encodedValue)
+
+      If byteCount >= destinationBuffer.Length Then
+         If byteCount > 0 Then _
+            DecodeWorker(encodedValue, destinationBuffer, byteCount, mapCharToByte)
+
+         Return byteCount
+      Else
+         Throw New ArgumentException(ERROR_DESTINATION_TOO_SMALL, NameOf(destinationBuffer))
+      End If
+   End Function
+
+   ''' <summary>
    ''' Decodes a Base32 string into a byte array.
    ''' </summary>
    ''' <param name="encodedValue">The Base32 string to decode.</param>
    ''' <param name="mapCharToByte">Array with mappings from the character to the corresponding byte.</param>
-   ''' <returns>The decoded Base32 string as a byte array.</returns>
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
-   Private Shared Function DecodeWorker(encodedValue As String, mapCharToByte As Byte()) As Byte()
-      If encodedValue Is Nothing Then _
-         Throw New ArgumentNullException(NameOf(encodedValue))
+   Private Shared Sub DecodeWorker(encodedValue As String, destinationBuffer As Byte(), byteCount As Integer, mapCharToByte As Byte())
+      Dim actByte As Byte = 0
+      Dim bitsRemaining As Byte = BITS_PER_BYTE
+      Dim mask As Byte
+      Dim arrayIndex As Integer = 0
 
-      Dim lengthWithoutPadding As Integer = LengthWithoutTrailingChar(encodedValue, PADDING_CHARACTER)
+      For i As Integer = 0 To encodedValue.Length - 1
+         Dim encodedChar = encodedValue(i)
 
-      If lengthWithoutPadding > 0 Then
-         If IsLengthValid(encodedValue.Length, lengthWithoutPadding) Then
-            Dim byteCount As Integer = (lengthWithoutPadding * BITS_PER_CHARACTER) \ BITS_PER_BYTE
-            Dim result As Byte() = New Byte(0 To byteCount - 1) {}
+         If encodedChar = PADDING_CHARACTER Then _
+            Exit For
 
-            Dim actByte As Byte = 0
-            Dim bitsRemaining As Byte = BITS_PER_BYTE
-            Dim mask As Byte
-            Dim arrayIndex As Integer = 0
+         Dim charValue As Byte = CharToValue(encodedChar, mapCharToByte)
 
-            For i As Integer = 0 To lengthWithoutPadding - 1
-               Dim charValue As Byte = CharToValue(encodedValue(i), mapCharToByte)
-
-               If (bitsRemaining > BITS_PER_CHARACTER) Then
-                  mask = charValue << (bitsRemaining - BITS_PER_CHARACTER)
-                  actByte = actByte Or mask
-                  bitsRemaining -= BITS_PER_CHARACTER
-               Else
-                  mask = charValue >> (BITS_PER_CHARACTER - bitsRemaining)
-                  actByte = actByte Or mask
-                  result(arrayIndex) = actByte
-                  arrayIndex += 1
-
-                  bitsRemaining += BITS_DIFFERENCE
-
-                  If bitsRemaining < BITS_PER_BYTE Then
-                     actByte = charValue << bitsRemaining
-                  Else
-                     actByte = 0
-                  End If
-               End If
-            Next
-
-            ' If we did not end with a full byte, write the remainder
-            If arrayIndex < byteCount Then _
-               result(arrayIndex) = actByte
-
-            Return result
+         If (bitsRemaining > BITS_PER_CHARACTER) Then
+            mask = charValue << (bitsRemaining - BITS_PER_CHARACTER)
+            actByte = actByte Or mask
+            bitsRemaining -= BITS_PER_CHARACTER
          Else
-            Throw New ArgumentException(ERROR_TEXT_INVALID_STRING_LENGTH, NameOf(encodedValue))
+            mask = charValue >> (BITS_PER_CHARACTER - bitsRemaining)
+            actByte = actByte Or mask
+            destinationBuffer(arrayIndex) = actByte
+            arrayIndex += 1
+
+            bitsRemaining += BITS_DIFFERENCE
+
+            If bitsRemaining < BITS_PER_BYTE Then
+               actByte = charValue << bitsRemaining
+            Else
+               actByte = 0
+            End If
          End If
-      Else
-         Return Array.Empty(Of Byte)
-      End If
-   End Function
+      Next
+
+      ' If we did not end with a full byte, write the remainder
+      If arrayIndex < byteCount Then _
+         destinationBuffer(arrayIndex) = actByte
+   End Sub
 #End Region
 
 #Region "Encode methods"
@@ -368,6 +420,30 @@ Public NotInheritable Class Base32Encoding
 #End Region
 
 #Region "String length helper methods"
+   ''' <summary>
+   ''' Checks if <paramref name="encodedValue"/> has a valid length and returns it, if it has one.
+   ''' </summary>
+   ''' <param name="encodedValue">The encoded value to check.</param>
+   ''' <returns>The number of decoded bytes in the encdoed value.</returns>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> has an invalid length.</exception>
+   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   Private Shared Function CheckEncodedValue(encodedValue As String) As Integer
+      If encodedValue Is Nothing Then _
+         Throw New ArgumentNullException(NameOf(encodedValue))
+
+      Dim lengthWithoutPadding As Integer = LengthWithoutTrailingChar(encodedValue, PADDING_CHARACTER)
+
+      If lengthWithoutPadding > 0 Then
+         If IsLengthValid(encodedValue.Length(), lengthWithoutPadding) Then
+            Return (lengthWithoutPadding * BITS_PER_CHARACTER) \ BITS_PER_BYTE
+         Else
+            Throw New ArgumentException(ERROR_TEXT_INVALID_STRING_LENGTH)
+         End If
+      Else
+         Return 0
+      End If
+   End Function
+
    ''' <summary>
    ''' Gets length of string without counting a trailing character.
    ''' </summary>
