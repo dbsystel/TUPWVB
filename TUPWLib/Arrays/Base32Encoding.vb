@@ -249,7 +249,7 @@ Public NotInheritable Class Base32Encoding
    Private Shared Function DecodeExistingBufferWithMapping(encodedValue As String, destinationBuffer As Byte(), mapCharToByte As Byte()) As Integer
       Dim byteCount As Integer = CheckEncodedValue(encodedValue)
 
-      If byteCount >= destinationBuffer.Length Then
+      If byteCount <= destinationBuffer.Length Then
          If byteCount > 0 Then _
             DecodeWorker(encodedValue, destinationBuffer, byteCount, mapCharToByte)
 
