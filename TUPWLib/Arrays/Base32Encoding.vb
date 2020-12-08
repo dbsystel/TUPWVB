@@ -145,9 +145,7 @@ Public NotInheritable Class Base32Encoding
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
    Public Shared Function Decode(encodedValue As String, destinationBuffer As Byte()) As Integer
-#Disable Warning CA1062 ' Validate arguments of public methods
       Return DecodeExistingBufferWithMapping(encodedValue, destinationBuffer, RFC_4648_CHAR_TO_VALUE)   ' destinationBuffer is checked in the called method
-#Enable Warning CA1062 ' Validate arguments of public methods
    End Function
 
    ''' <summary>
@@ -170,9 +168,7 @@ Public NotInheritable Class Base32Encoding
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
    Public Shared Function DecodeSpellSafe(encodedValue As String, destinationBuffer As Byte()) As Integer
-#Disable Warning CA1062 ' Validate arguments of public methods
       Return DecodeExistingBufferWithMapping(encodedValue, destinationBuffer, SPELL_SAFE_CHAR_TO_VALUE)   ' destinationBuffer is checked in the called method
-#Enable Warning CA1062 ' Validate arguments of public methods
    End Function
 #End Region
 

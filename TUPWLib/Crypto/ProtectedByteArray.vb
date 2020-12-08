@@ -116,18 +116,16 @@ Public Class ProtectedByteArray : Implements IDisposable
 
       Dim result As Boolean = False
 
-      If obj IsNot Nothing Then
-         If TypeOf obj Is ProtectedByteArray Then
-            Dim other As ProtectedByteArray = DirectCast(obj, ProtectedByteArray)
+      If TypeOf obj Is ProtectedByteArray Then
+         Dim other As ProtectedByteArray = DirectCast(obj, ProtectedByteArray)
 
-            Dim thisClearData As Byte() = GetData()
-            Dim otherClearData As Byte() = other.GetData()
+         Dim thisClearData As Byte() = GetData()
+         Dim otherClearData As Byte() = other.GetData()
 
-            result = ArrayHelper.SecureAreEqual(thisClearData, otherClearData)
+         result = ArrayHelper.SecureAreEqual(thisClearData, otherClearData)
 
-            ArrayHelper.Clear(thisClearData)
-            ArrayHelper.Clear(otherClearData)
-         End If
+         ArrayHelper.Clear(thisClearData)
+         ArrayHelper.Clear(otherClearData)
       End If
 
       Return result
@@ -304,13 +302,13 @@ Public Class ProtectedByteArray : Implements IDisposable
                m_Obfuscation.Dispose()
             End If
 
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
+            ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
+            ' Set large fields to null.
          End If
       End SyncLock
    End Sub
 
-   ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+   ' Override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
    'Protected Overrides Sub Finalize()
    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
    '    Dispose(False)
@@ -325,7 +323,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' </remarks>
    Public Sub Dispose() Implements IDisposable.Dispose
       Dispose(True)
-      ' TODO: uncomment the following line if Finalize() is overridden above.
+      ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
 #End Region

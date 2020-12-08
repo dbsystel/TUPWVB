@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.2
+' Version: 1.0.3
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
 '    2020-05-18: V1.0.1: Use lock object for Dispose.
 '    2020-05-18: V1.0.2: Instantiate lock object.
+'    2020-12-08: V1.0.3: Explain usage of IndexOutOfRangeException.
 '
 
 ''' <summary>
@@ -221,19 +222,17 @@ Public Class ShuffledByteArray : Implements IDisposable
    Public Overrides Function Equals(obj As Object) As Boolean
       Dim result As Boolean = False
 
-      If obj IsNot Nothing Then
-         If TypeOf obj Is ShuffledByteArray Then
-            Dim other As ShuffledByteArray = DirectCast(obj, ShuffledByteArray)
+      If TypeOf obj Is ShuffledByteArray Then
+         Dim other As ShuffledByteArray = DirectCast(obj, ShuffledByteArray)
 
-            If Length = other.Length Then
-               Dim thisClearArray As Byte() = GetData()
-               Dim otherClearArray As Byte() = other.GetData()
+         If Length = other.Length Then
+            Dim thisClearArray As Byte() = GetData()
+            Dim otherClearArray As Byte() = other.GetData()
 
-               result = ArrayHelper.SecureAreEqual(thisClearArray, otherClearArray)
+            result = ArrayHelper.SecureAreEqual(thisClearArray, otherClearArray)
 
-               ArrayHelper.Clear(thisClearArray)
-               ArrayHelper.Clear(otherClearArray)
-            End If
+            ArrayHelper.Clear(thisClearArray)
+            ArrayHelper.Clear(otherClearArray)
          End If
       End If
 
@@ -294,11 +293,18 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' <summary>
    ''' Checks whether a given external index is valid
    ''' </summary>
+   ''' <remarks>
+   ''' This methods throws an <see cref="IndexOutOfRangeException"/> which is a runtime exception that should normally
+   ''' not be thrown by user code. However, here an index operation is performend in user code and this exception is the correct one.
+   ''' </remarks>
    ''' <param name="externalIndex">Index value to be checked</param>
    ''' <exception cref="IndexOutOfRangeException">Thrown when the <paramref name="externalIndex"/> is not valid.</exception>
    Private Sub CheckExternalIndex(externalIndex As Integer)
-      If externalIndex < 0 OrElse externalIndex >= GetRealIndex(m_StoredArrayLength) Then _
-         Throw New IndexOutOfRangeException()
+#Disable Warning S112  ' General exceptions should not be thrown by user code
+      If (externalIndex < 0) OrElse
+         (externalIndex >= GetRealIndex(m_StoredArrayLength)) Then _
+         Throw New IndexOutOfRangeException(NameOf(externalIndex))
+#Enable Warning S112  ' General exceptions should not be thrown by user code
    End Sub
 
    ''' <summary>
@@ -581,21 +587,20 @@ Public Class ShuffledByteArray : Implements IDisposable
          If Not m_IsDisposed Then
             m_IsDisposed = True
 
-            If disposeManagedResources Then
-               If m_IsValid Then
-                  m_IsValid = False
+            If disposeManagedResources AndAlso
+               m_IsValid Then
+               m_IsValid = False
 
-                  ClearData()
-               End If
+               ClearData()
             End If
 
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
+            ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
+            ' Set large fields to null.
          End If
       End SyncLock
    End Sub
 
-   ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+   ' Override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
    'Protected Overrides Sub Finalize()
    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
    '    Dispose(False)
@@ -610,7 +615,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' </remarks>
    Public Sub Dispose() Implements IDisposable.Dispose
       Dispose(True)
-      ' TODO: uncomment the following line if Finalize() is overridden above.
+      ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
 #End Region

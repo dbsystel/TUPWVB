@@ -366,31 +366,30 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    ''' </summary>
    ''' <param name="disposeManagedResources"><c>true</c>, if managed resource are to be disposed of, <c>false</c>, if not.</param>
    Protected Overridable Sub Dispose(disposeManagedResources As Boolean)
-      If Not m_IsDisposed Then
-         If disposeManagedResources Then
+      If Not m_IsDisposed AndAlso
+         disposeManagedResources Then
 
-            '
-            ' Disposing of resources needs to be synchronized to prevent a race condition.
-            '
-            SyncLock m_SymmetricAlgorithm
-               m_IsDisposed = True
+         '
+         ' Disposing of resources needs to be synchronized to prevent a race condition.
+         '
+         SyncLock m_SymmetricAlgorithm
+            m_IsDisposed = True
 
-               m_XorMaskPosition = 0
+            m_XorMaskPosition = 0
 
-               ArrayHelper.Clear(m_Counter)
-               ArrayHelper.Clear(m_XorMask)
+            ArrayHelper.Clear(m_Counter)
+            ArrayHelper.Clear(m_XorMask)
 
-               m_CounterEncryptor.Dispose()
-               m_SymmetricAlgorithm.Dispose()
-            End SyncLock
-         End If
+            m_CounterEncryptor.Dispose()
+            m_SymmetricAlgorithm.Dispose()
+         End SyncLock
 
-         ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-         ' TODO: set large fields to null.
+         ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
+         ' Set large fields to null.
       End If
    End Sub
 
-   ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+   ' Override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
    'Protected Overrides Sub Finalize()
    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
    '    Dispose(False)
@@ -405,7 +404,7 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    ''' </remarks>
    Public Sub Dispose() Implements IDisposable.Dispose
       Dispose(True)
-      ' TODO: uncomment the following line if Finalize() is overridden above.
+      ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
 #End Region

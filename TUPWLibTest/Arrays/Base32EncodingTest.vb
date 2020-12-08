@@ -612,9 +612,7 @@ Imports DB.BCM.TUPW
 
       For Each aWrongEncoding As String In WRONG_ENCODINGS
          Try
-#Disable Warning S1481 ' Unused local variables should be removed
             b32DecodedArray = Base32Encoding.Decode(aWrongEncoding)
-#Enable Warning S1481 ' Unused local variables should be removed
 
             Assert.Fail($"Expected exception ArgumentNullException not thrown on encoding '${aWrongEncoding}'")
 

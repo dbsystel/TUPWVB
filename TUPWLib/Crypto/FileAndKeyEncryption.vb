@@ -276,25 +276,24 @@ Public Class FileAndKeyEncryption : Implements IDisposable
       If Not m_IsDisposed Then
          m_IsDisposed = True
 
-         If disposeManagedResources Then
-            If m_IsValid Then
-               '
-               ' Disposing of resources needs to be synchronized to prevent a race condition.
-               '
-               SyncLock m_SplitKeyEncryption
-                  m_IsValid = False
+         If disposeManagedResources AndAlso
+            m_IsValid Then
+            '
+            ' Disposing of resources needs to be synchronized to prevent a race condition.
+            '
+            SyncLock m_SplitKeyEncryption
+               m_IsValid = False
 
-                  m_SplitKeyEncryption.Dispose()
-               End SyncLock
-            End If
+               m_SplitKeyEncryption.Dispose()
+            End SyncLock
          End If
 
-         ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-         ' TODO: set large fields to null.
+         ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
+         ' Set large fields to null.
       End If
    End Sub
 
-   ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+   ' Override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
    'Protected Overrides Sub Finalize()
    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
    '    Dispose(False)
@@ -309,7 +308,7 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    ''' </remarks>
    Public Sub Dispose() Implements IDisposable.Dispose
       Dispose(True)
-      ' TODO: uncomment the following line if Finalize() is overridden above.
+      ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
 #End Region

@@ -748,7 +748,7 @@ Public NotInheritable Class ArrayHelper
    '=============
 
    ''' <summary>
-   ''' Fill an array with a specified value starting from index with a specified length.
+   ''' Fill an array with a specified value starting from offset with a specified length.
    ''' </summary>
    ''' <typeparam name="T">Type of elements of the array.</typeparam>
    ''' <param name="destinationArray">The array to fill.</param>
@@ -761,9 +761,7 @@ Public NotInheritable Class ArrayHelper
    ''' <paramref name="count"/> is less than 0 or <paramref name="destinationArray"/> is not large enough to be filled with that
    ''' many values.</exception>
    Public Shared Sub Fill(Of T)(destinationArray As T(), aValue As T, offset As Integer, count As Integer)
-#Disable Warning CA1062 ' Null is checked for in method "CheckArrayOffsetCountMustFit"
       CheckArrayOffsetCountMustFit(NameOf(destinationArray), destinationArray, offset, count)
-#Enable Warning CA1062
 
       For i = offset To offset + count - 1
          destinationArray(i) = aValue
