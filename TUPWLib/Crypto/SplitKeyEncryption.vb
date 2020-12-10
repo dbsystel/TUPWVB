@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.3.0
+' Version: 1.3.1
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -31,6 +31,7 @@
 '    2020-08-11: V1.2.4: Refactored encryption to get rid of magic constant.
 '    2020-08-11: V1.2.5: Corrected string concatenation and use array literal.
 '    2020-11-12: V1.3.0: Implemented V6 of the encoded format.
+'    2020-12-10: V1.3.1: Made hashing simpler and 2.5 times faster.
 '
 
 Imports System.IO
@@ -231,9 +232,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' in the source bytes or there are too many source bytes.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if the HMAC key or any of the source byte arrays is <c>Nothing</c>.</exception>
    Public Sub New(hmacKey As Byte(), ParamArray sourceBytes As Byte()())
-#Disable Warning CA1062 ' Null check of "hmacKey" is done in CheckHMACKey
       CheckHMACKey(hmacKey)
-#Enable Warning CA1062
 
       CheckSourceBytes(sourceBytes)
 
@@ -464,6 +463,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <exception cref="ArgumentException">Thrown if there is not enough information in the source bytes or there are too many source bytes.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if any of the source byte arrays is <c>Nothing</c>.</exception>
    Private Shared Sub CheckSourceBytes(ParamArray sourceBytes As Byte()())
+      RequireNonNull(sourceBytes, NameOf(sourceBytes))
+
       Dim ec As EntropyCalculator = New EntropyCalculator()
 
       Dim sourceLength As Integer
@@ -527,7 +528,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' Calculate the HMAC of the source bytes.
    ''' </summary>
    ''' <remarks>
-   ''' This is the source for the encryption and the HMAC keys used in encryption process. 
+   ''' This is the source for the encryption and the HMAC keys used in encryption process.
    ''' </remarks>
    ''' <param name="key">HMAC key.</param>
    ''' <param name="sourceBytes">Source bytes used in HMAC calculation.</param>
@@ -535,18 +536,18 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Shared Function GetHMACValueOfSourceBytes(key As Byte(), ParamArray sourceBytes As Byte()()) As Byte()
       Dim result As Byte()
 
-      Using byteStream As MemoryStream = New MemoryStream
-         Using hmac As New HMACSHA256(key)
-            Using hmacStream As CryptoStream = New CryptoStream(byteStream, hmac, CryptoStreamMode.Write)
-               For i As Integer = 0 To sourceBytes.Length - 1
-                  hmacStream.Write(sourceBytes(i), 0, sourceBytes(i).Length)
-               Next
+      Dim actBytes As Byte()
 
-               hmacStream.FlushFinalBlock()
-            End Using
+      Using hmac As New HMACSHA256(key)
+         For i As Integer = 0 To sourceBytes.Length - 2
+            actBytes = sourceBytes(i)
+            hmac.TransformBlock(actBytes, 0, actBytes.Length, actBytes, 0)
+         Next
 
-            result = hmac.Hash
-         End Using
+         actBytes = sourceBytes(sourceBytes.Length - 1)
+         hmac.TransformFinalBlock(actBytes, 0, actBytes.Length)
+
+         result = hmac.Hash
       End Using
 
       Return result
@@ -1045,21 +1046,36 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim hmacKey As Byte() = GetHMACKeyForFormat(ep.formatId(0), subjectBytes)
 
-      Using encryptionPartsStream As MemoryStream = New MemoryStream(ep.TotalLength)
-         Using hmac As HMACSHA256 = New HMACSHA256(hmacKey)
-            Using hmacStream As CryptoStream = New CryptoStream(encryptionPartsStream, hmac, CryptoStreamMode.Write)
-               hmacStream.Write(ep.formatId, 0, ep.formatId.Length)
-               hmacStream.Write(ep.iv, 0, ep.iv.Length)
-               hmacStream.Write(ep.encryptedData, 0, ep.encryptedData.Length)
+      Dim hmac As HMACSHA256 = Nothing
 
-               hmacStream.FlushFinalBlock()
-            End Using
+      '
+      ' There is no "finally" statement as this will only be executed if there is a wrapping "try-catch" block.
+      ' To ensure that the array is cleared the corresponding statements are duplicated in the "try"
+      ' and the "catch" part.
+      '
+      Try
+         hmac = New HMACSHA256(hmacKey)
 
-            result = hmac.Hash
-         End Using
+         hmac.TransformBlock(ep.formatId, 0, ep.formatId.Length, ep.formatId, 0)
+         hmac.TransformBlock(ep.iv, 0, ep.iv.Length, ep.iv, 0)
+         hmac.TransformFinalBlock(ep.encryptedData, 0, ep.encryptedData.Length)
 
+         result = hmac.Hash
+
+         ' Clear sensitive data
          ArrayHelper.Clear(hmacKey)
-      End Using
+
+         hmac.Clear()
+
+      Catch ex As Exception
+         ' Clear sensitive data
+         ArrayHelper.Clear(hmacKey)
+
+         If hmac IsNot Nothing Then _
+            hmac.Clear()
+
+         Throw   ' Rethrow the exception after sensitive data have been cleared
+      End Try
 
       Return result
    End Function

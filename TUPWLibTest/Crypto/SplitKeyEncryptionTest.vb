@@ -931,6 +931,37 @@ Imports DB.BCM.TUPW
    End Sub
 
    ''' <summary>
+   ''' Test if a null source bytes throw an exception.
+   ''' </summary>
+   <TestMethod()> Public Sub TestNullSource()
+      Dim myEncryptor As SplitKeyEncryption = Nothing
+
+      Try
+         myEncryptor = New SplitKeyEncryption(COMPUTED_HMAC_KEY, Nothing)
+
+#Disable Warning S1481 ' Unused local variables should be removed
+         Dim encryptedText As String = myEncryptor.EncryptData(CLEAR_TEXT_V5)
+#Enable Warning S1481 ' Unused local variables should be removed
+
+         myEncryptor.Dispose()
+
+         Assert.Fail(TEXT_EXPECTED_EXCEPTION)
+
+      Catch ex As ArgumentNullException
+         If myEncryptor IsNot Nothing Then _
+            myEncryptor.Dispose()
+
+         Assert.IsTrue(ex.Message().Contains("sourceBytes"), GetUnexpectedExceptionMessage(ex))
+
+      Catch ex As Exception
+         If myEncryptor IsNot Nothing Then _
+            myEncryptor.Dispose()
+
+         Assert.Fail(GetUnexpectedExceptionMessage(ex))
+      End Try
+   End Sub
+
+   ''' <summary>
    ''' Test if a null byte array in the source bytes throws an exception.
    ''' </summary>
    <TestMethod()> Public Sub TestNullByteArrayInSource()
