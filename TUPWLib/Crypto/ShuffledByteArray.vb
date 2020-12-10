@@ -18,13 +18,14 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.3
+' Version: 2.0.0
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
 '    2020-05-18: V1.0.1: Use lock object for Dispose.
 '    2020-05-18: V1.0.2: Instantiate lock object.
 '    2020-12-08: V1.0.3: Explain usage of IndexOutOfRangeException.
+'    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
 '
 
 ''' <summary>
@@ -79,11 +80,6 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' Hash code of data in <c>m_ByteArray</c>.
    ''' </summary>
    Private m_HashCode As Integer
-
-   ''' <summary>
-   ''' Is data in this instance valid?
-   ''' </summary>
-   Private m_IsValid As Boolean
 
    ''' <summary>
    ''' Object only used for locking the call to Dispose.
@@ -149,7 +145,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' <summary>
    ''' Gets the original array content
    ''' </summary>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
    ''' <returns>Original array content</returns>
    Public Function GetData() As Byte()
       CheckState()
@@ -161,7 +157,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' Element at a given position
    ''' </summary>
    ''' <exception cref="IndexOutOfRangeException">Thrown when the <paramref name="externalIndex"/> is not valid.</exception>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
    ''' <returns>>Value of the array element at the given position</returns>
    Public Property ElementAt(externalIndex As Integer) As Byte
       Get
@@ -180,7 +176,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' <summary>
    ''' Length of data stored in the array
    ''' </summary>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
    ''' <returns>Real length of stored array</returns>
    Public ReadOnly Property Length As Integer
       Get
@@ -191,12 +187,12 @@ Public Class ShuffledByteArray : Implements IDisposable
    End Property
 
    ''' <summary>
-   ''' Checks whether this ShuffledByteArray is valid
+   ''' Checks whether this instance is valid
    ''' </summary>
-   ''' <returns><c>true</c>, if the <see cref="ShuffledByteArray"/> instance is in a valid state, <c>false</c>, if the <see cref="ShuffledByteArray"/> has already been disposed of.</returns>
+   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
    Public ReadOnly Property IsValid As Boolean
       Get
-         Return m_IsValid
+         Return Not m_IsDisposed
       End Get
    End Property
 #End Region
@@ -205,7 +201,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' <summary>
    ''' Returns the hash code of this <see cref="ShuffledByteArray"/> instance.
    ''' </summary>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
    ''' <returns>The hash code</returns>
    Public Overrides Function GetHashCode() As Integer
       CheckState()
@@ -217,7 +213,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' Compares the specified object with this <see cref="ShuffledByteArray"/> instance.
    ''' </summary>
    ''' <param name="obj">The object to compare.</param>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
    ''' <returns><c>true</c> if byte arrays of both object are equal, otherwise <c>false</c>}.</returns>
    Public Overrides Function Equals(obj As Object) As Boolean
       Dim result As Boolean = False
@@ -253,12 +249,12 @@ Public Class ShuffledByteArray : Implements IDisposable
    '
 
    ''' <summary>
-   ''' Checks whether the shuffled byte array is in a valid state
+   ''' Throws an exception if this instance is not in a valid state
    ''' </summary>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
    Private Sub CheckState()
-      If Not m_IsValid Then _
-         Throw New InvalidOperationException("ShuffledByteArray has already been disposed of")
+      If m_IsDisposed Then _
+         Throw New ObjectDisposedException(NameOf(ShuffledByteArray))
    End Sub
 
    ''' <summary>
@@ -312,7 +308,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' </summary>
    ''' <param name="externalIndex">Index value to be checked</param>
    ''' <exception cref="IndexOutOfRangeException">Thrown when the <paramref name="externalIndex"/> is not valid.</exception>
-   ''' <exception cref="InvalidOperationException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
    Private Sub CheckStateAndExternalIndex(externalIndex As Integer)
       CheckState()
 
@@ -437,8 +433,6 @@ Public Class ShuffledByteArray : Implements IDisposable
       InitializeDataStructures(count)
 
       SetValues(sourceArray, offset, count)
-
-      m_IsValid = True
    End Sub
 
    ''' <summary>
@@ -587,12 +581,8 @@ Public Class ShuffledByteArray : Implements IDisposable
          If Not m_IsDisposed Then
             m_IsDisposed = True
 
-            If disposeManagedResources AndAlso
-               m_IsValid Then
-               m_IsValid = False
-
+            If disposeManagedResources Then _
                ClearData()
-            End If
 
             ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
             ' Set large fields to null.

@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.3.1
+' Version: 2.0.0
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -32,6 +32,7 @@
 '    2020-08-11: V1.2.5: Corrected string concatenation and use array literal.
 '    2020-11-12: V1.3.0: Implemented V6 of the encoded format.
 '    2020-12-10: V1.3.1: Made hashing simpler and 2.5 times faster.
+'    2020-12-10: V2.0.0: Correct handling of disposed instances.
 '
 
 Imports System.IO
@@ -85,7 +86,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Const MINIMUM_SOURCE_BYTES_LENGTH As UInteger = 100
 
    ''' <summary>
-   ''' Maximum length fpr source bytes.
+   ''' Maximum length for source bytes.
    ''' </summary>
    Private Const MAXIMUM_SOURCE_BYTES_LENGTH As UInteger = 10000000
 
@@ -151,7 +152,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Public checksum As Byte()
 
       Public Sub New()
-         formatId = New Byte(0 To 0) {0}
+         formatId = New Byte() {0}
       End Sub
 
       ''' <summary>
@@ -207,11 +208,6 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' HMAC key to use.
    ''' </summary>
    Private m_HMACKey As ProtectedByteArray
-
-   ''' <summary>
-   ''' Indicates whether this instance has valid data.
-   ''' </summary>
-   Private m_IsValid As Boolean = False
 #End Region
 
 #Region "Constructors"
@@ -237,9 +233,19 @@ Public Class SplitKeyEncryption : Implements IDisposable
       CheckSourceBytes(sourceBytes)
 
       SetKeysFromKeyAndSourceBytes(hmacKey, sourceBytes)
-
-      m_IsValid = True
    End Sub
+#End Region
+
+#Region "Public attributes"
+   ''' <summary>
+   ''' Checks whether this instance is valid
+   ''' </summary>
+   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
+   Public ReadOnly Property IsValid As Boolean
+      Get
+         Return Not m_IsDisposed
+      End Get
+   End Property
 #End Region
 
 #Region "Public methods"
@@ -423,12 +429,6 @@ Public Class SplitKeyEncryption : Implements IDisposable
    End Function
 
 #End Region
-
-#Region "Validity interfaces"
-   Public Function IsValid() As Boolean
-      Return m_IsValid
-   End Function
-#End Region
 #End Region
 
 #Region "Private methods"
@@ -440,6 +440,16 @@ Public Class SplitKeyEncryption : Implements IDisposable
    '
    ' Check methods
    '
+
+   ''' <summary>
+   ''' Throws an exception if this instance is not in a valid state
+   ''' </summary>
+   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
+   Private Sub CheckState()
+      If m_IsDisposed Then _
+         Throw New ObjectDisposedException(NameOf(SplitKeyEncryption))
+   End Sub
+
    ''' <summary>
    ''' Checkt the length of the HMAC key.
    ''' </summary>
@@ -562,6 +572,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <param name="subject">Subject to use for encryption.</param>
    ''' <returns>Formatted string with the encrypted data.</returns>
    Private Function MakeEncryptionStringFromSourceBytes(sourceBytes As Byte(), subject As String) As String
+      CheckState()
+
       Dim result As String
 
       Dim rawEncryptionData As EncryptionParts = Nothing  ' This needs to be declared here so it is accessible in the catch block
@@ -785,6 +797,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' the block size of the used algorithm or if any part of the string is not a valid Base64 string.</exception>
    ''' <exception cref="DataIntegrityException">Thrown if the calculated checksum does not match the checksum in the data.</exception>
    Private Function DecryptStringWithSubject(stringToDecrypt As String, subjectBytes() As Byte) As Byte()
+      CheckState()
+
       Dim result As Byte()
 
       Dim ep As EncryptionParts = Nothing
@@ -1194,14 +1208,11 @@ Public Class SplitKeyEncryption : Implements IDisposable
       If Not m_IsDisposed Then
          m_IsDisposed = True
 
-         If disposeManagedResources AndAlso
-            m_IsValid Then
+         If disposeManagedResources Then
             '
             ' Disposing of resources needs to be synchronized to prevent a race condition.
             '
             SyncLock m_EncryptionKey
-               m_IsValid = False
-
                m_EncryptionKey.Dispose()
                m_HMACKey.Dispose()
             End SyncLock

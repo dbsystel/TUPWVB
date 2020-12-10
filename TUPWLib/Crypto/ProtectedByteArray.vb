@@ -18,10 +18,11 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 2.0.0
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
+'    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
 '
 
 ''' <summary>
@@ -86,7 +87,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' Returns the data of the byte array in the clear.
    ''' </summary>
    ''' <returns>The clear data in the byte array.</returns>
-   ''' <exception cref="InvalidOperationException">Thrown if this instance has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown if this instance has already been disposed of.</exception>
    Public Function GetData() As Byte()
       CheckState()
 
@@ -98,7 +99,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' Returns the hash code of this instance.
    ''' </summary>
    ''' <returns>The hash code.</returns>
-   ''' <exception cref="InvalidOperationException">Thrown if this instance has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown if this instance has already been disposed of.</exception>
    Public Overrides Function GetHashCode() As Integer
       CheckState()
 
@@ -110,7 +111,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' </summary>
    ''' <param name="obj">The object to compare.</param>
    ''' <returns><c>True</c>, if the other object is a <see cref="ProtectedByteArray"/> with the same content as this instance, otherwise <c>false</c>.</returns>
-   ''' <exception cref="InvalidOperationException">Thrown if this instance has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown if this instance has already been disposed of.</exception>
    Public Overrides Function Equals(obj As Object) As Boolean
       CheckState()
 
@@ -137,7 +138,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' Gets the array length.
    ''' </summary>
    ''' <returns>Real length of data stored in this instance.</returns>
-   ''' <exception cref="InvalidOperationException">Thrown if this instance has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown if this instance has already been disposed of.</exception>
    Public ReadOnly Property Length As Integer
       Get
          CheckState()
@@ -197,12 +198,12 @@ Public Class ProtectedByteArray : Implements IDisposable
    End Sub
 
    ''' <summary>
-   ''' Checks whether the protected byte array is in a valid state.
+   ''' Throws an exception if this instance is not in a valid state
    ''' </summary>
-   ''' <exception cref="InvalidOperationException">Thrown if this instance has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
    Private Sub CheckState()
-      If Not m_ProtectedArray.IsValid() Then _
-         Throw New InvalidOperationException("ProtectedByteArray has already been disposed of")
+      If m_IsDisposed Then _
+         Throw New ObjectDisposedException(NameOf(ProtectedByteArray))
    End Sub
 #End Region
 

@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.1.1
+' Version: 2.0.0
 '
 ' Change history:
 '    2020-04-30: V1.0.0: Created.
 '    2020-05-12: V1.1.0: Corrected handling of 0 length final block.
 '    2020-06-18: V1.1.1: Corrected handling of null parameters in constructors.
+'    2020-12-10: V2.0.0: Added correct handling of disposed instance.
 '
 
 Imports System.Security.Cryptography
@@ -98,6 +99,7 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
 #End Region
 
 #Region "Public properties"
+#Region "ICryptoTransform attributes"
    ''' <summary>
    ''' Gets the input block size.
    ''' </summary>
@@ -147,6 +149,17 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    End Property
 #End Region
 
+   ''' <summary>
+   ''' Checks whether this instance is valid
+   ''' </summary>
+   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
+   Public ReadOnly Property IsValid As Boolean
+      Get
+         Return Not m_IsDisposed
+      End Get
+   End Property
+#End Region
+
 #Region "Public methods"
    ''' <summary>
    ''' Transforms the specified region of the input byte array and copies the resulting transform
@@ -167,11 +180,13 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    ''' <paramref name="outputOffset"/> is larger than the length of <paramref name="outputBuffer"/>. 
    ''' </exception>
    Public Function TransformBlock(inputBuffer() As Byte, inputOffset As Integer, inputCount As Integer, outputBuffer() As Byte, outputOffset As Integer) As Integer Implements ICryptoTransform.TransformBlock
+      CheckState()
+
       CheckBufferParameters("input", inputBuffer, inputOffset, inputCount)
       CheckBufferParameters("output", outputBuffer, outputOffset, inputCount)
 
       If inputCount Mod m_BlockSizeInBytes <> 0 Then _
-         Throw New ArgumentException("inputCount is not a multiple of the transform block size")
+         Throw New ArgumentException(NameOf(inputCount) & " is not a multiple of the transform block size")
 
       Dim sourceIndex As Integer = inputOffset
       Dim destinationIndex As Integer = outputOffset
@@ -202,6 +217,8 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    ''' <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="inputOffset"/> or <paramref name="inputCount"/> are
    ''' less than 0 or <paramref name="inputOffset"/> is larger than the length of <paramref name="inputBuffer"/>.</exception>
    Public Function TransformFinalBlock(inputBuffer() As Byte, inputOffset As Integer, inputCount As Integer) As Byte() Implements ICryptoTransform.TransformFinalBlock
+      CheckState()
+
       CheckBufferParameters("input", inputBuffer, inputOffset, inputCount)
 
       Dim output As Byte()
@@ -262,6 +279,15 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
 #End Region
 
 #Region "Check methods"
+   ''' <summary>
+   ''' Throws an exception if this instance is not in a valid state
+   ''' </summary>
+   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
+   Private Sub CheckState()
+      If m_IsDisposed Then _
+         Throw New ObjectDisposedException(NameOf(CounterModeCryptoTransform))
+   End Sub
+
    ''' <summary>
    ''' Checks the parameters for buffer handling.
    ''' </summary>

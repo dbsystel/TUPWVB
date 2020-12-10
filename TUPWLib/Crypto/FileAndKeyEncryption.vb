@@ -22,6 +22,7 @@
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
+'    2020-12-10: V2.0.0: Correct handling of disposed instances.
 '
 
 Imports System.IO
@@ -39,11 +40,6 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    ''' Instance of <see cref="SplitKeyEncryption"/> to use behind this interface.
    ''' </summary>
    Private ReadOnly m_SplitKeyEncryption As SplitKeyEncryption
-
-   ''' <summary>
-   ''' Indicates whether this instance has valid data.
-   ''' </summary>
-   Private m_IsValid As Boolean = False
 #End Region
 
 #Region "Constructors"
@@ -74,9 +70,19 @@ Public Class FileAndKeyEncryption : Implements IDisposable
       m_SplitKeyEncryption = New SplitKeyEncryption(hmacKey, keyFileBytes)
 
       ArrayHelper.Clear(keyFileBytes)
-
-      m_IsValid = True
    End Sub
+#End Region
+
+#Region "Public attributes"
+   ''' <summary>
+   ''' Checks whether this instance is valid
+   ''' </summary>
+   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
+   Public ReadOnly Property IsValid As Boolean
+      Get
+         Return Not m_IsDisposed
+      End Get
+   End Property
 #End Region
 
 #Region "Public methods"
@@ -210,12 +216,6 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    End Function
 
 #End Region
-
-#Region "Validity interfaces"
-   Public Function IsValid() As Boolean
-      Return m_IsValid
-   End Function
-#End Region
 #End Region
 
 #Region "Private methods"
@@ -223,6 +223,18 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    ' Private methods
    '******************************************************************
 
+#Region "Check methods"
+   ''' <summary>
+   ''' Throws an exception if this instance is not in a valid state
+   ''' </summary>
+   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
+   Private Sub CheckState()
+      If m_IsDisposed Then _
+         Throw New ObjectDisposedException(NameOf(FileAndKeyEncryption))
+   End Sub
+#End Region
+
+#Region "File helper methods"
    ''' <summary>
    ''' Get the content of the key file.
    ''' </summary>
@@ -247,6 +259,7 @@ Public Class FileAndKeyEncryption : Implements IDisposable
 
       Return result
    End Function
+#End Region
 
 #Region "Exception helpers"
    ''' <summary>
@@ -276,14 +289,11 @@ Public Class FileAndKeyEncryption : Implements IDisposable
       If Not m_IsDisposed Then
          m_IsDisposed = True
 
-         If disposeManagedResources AndAlso
-            m_IsValid Then
+         If disposeManagedResources Then
             '
             ' Disposing of resources needs to be synchronized to prevent a race condition.
             '
             SyncLock m_SplitKeyEncryption
-               m_IsValid = False
-
                m_SplitKeyEncryption.Dispose()
             End SyncLock
          End If
