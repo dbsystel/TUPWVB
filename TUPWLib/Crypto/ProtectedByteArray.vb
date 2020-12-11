@@ -18,11 +18,12 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.0
+' Version: 2.0.1
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
 '    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
+'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
 '
 
 ''' <summary>
@@ -133,7 +134,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    End Function
 #End Region
 
-#Region "Properties"
+#Region "Public properties"
    ''' <summary>
    ''' Gets the array length.
    ''' </summary>
@@ -144,16 +145,6 @@ Public Class ProtectedByteArray : Implements IDisposable
          CheckState()
 
          Return m_ProtectedArray.Length
-      End Get
-   End Property
-
-   ''' <summary>
-   ''' Check whether this instance contains valid data.
-   ''' </summary>
-   ''' <returns><c>True</c>, if this instance has not been disposed of, <c>false</c> otherwise.</returns>
-   Public ReadOnly Property IsValid() As Boolean
-      Get
-         Return m_ProtectedArray.IsValid
       End Get
    End Property
 #End Region
@@ -327,5 +318,15 @@ Public Class ProtectedByteArray : Implements IDisposable
       ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
+
+   ''' <summary>
+   ''' Check whether this instance contains valid data.
+   ''' </summary>
+   ''' <returns><c>True</c>, if this instance has not been disposed of, <c>false</c> otherwise.</returns>
+   Public ReadOnly Property IsValid() As Boolean
+      Get
+         Return m_ProtectedArray.IsValid
+      End Get
+   End Property
 #End Region
 End Class

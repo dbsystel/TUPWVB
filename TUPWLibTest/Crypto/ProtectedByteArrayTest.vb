@@ -18,10 +18,11 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 1.0.1
 '
 ' Change history:
 '    2020-04-29: V1.0.0: Created.
+'    2020-12-11: V1.0.1: Check for corrected exception after Dispose.
 '
 
 ' Imports Microsoft.VisualStudio.TestTools.UnitTesting
@@ -91,10 +92,10 @@ Imports DB.BCM.TUPW
 
          Assert.Fail(EXPECTED_EXCEPTION)
 
-      Catch ex As InvalidOperationException
-         Dim message As String = ex.Message()
-
-         Assert.AreEqual("ProtectedByteArray has already been disposed of", message, "IllegalStateException with wrong message: " & message)
+      Catch ex As ObjectDisposedException
+         '
+         ' This is the expected exception
+         '
 
       Catch ex As Exception
          Assert.Fail("Exception: " & ex.Message() & " / " & ex.StackTrace())

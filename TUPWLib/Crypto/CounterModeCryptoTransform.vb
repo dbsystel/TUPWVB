@@ -18,13 +18,14 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.0
+' Version: 2.0.1
 '
 ' Change history:
 '    2020-04-30: V1.0.0: Created.
 '    2020-05-12: V1.1.0: Corrected handling of 0 length final block.
 '    2020-06-18: V1.1.1: Corrected handling of null parameters in constructors.
 '    2020-12-10: V2.0.0: Added correct handling of disposed instance.
+'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
 '
 
 Imports System.Security.Cryptography
@@ -148,16 +149,6 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
       End Get
    End Property
 #End Region
-
-   ''' <summary>
-   ''' Checks whether this instance is valid
-   ''' </summary>
-   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
-   Public ReadOnly Property IsValid As Boolean
-      Get
-         Return Not m_IsDisposed
-      End Get
-   End Property
 #End Region
 
 #Region "Public methods"
@@ -433,5 +424,16 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
       ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
+
+   ''' <summary>
+   ''' Checks whether this instance is valid
+   ''' </summary>
+   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
+   Public ReadOnly Property IsValid As Boolean
+      Get
+         Return Not m_IsDisposed
+      End Get
+   End Property
+
 #End Region
 End Class

@@ -18,11 +18,12 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 2.0.1
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
+'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
 '
 
 Imports System.IO
@@ -71,18 +72,6 @@ Public Class FileAndKeyEncryption : Implements IDisposable
 
       ArrayHelper.Clear(keyFileBytes)
    End Sub
-#End Region
-
-#Region "Public attributes"
-   ''' <summary>
-   ''' Checks whether this instance is valid
-   ''' </summary>
-   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
-   Public ReadOnly Property IsValid As Boolean
-      Get
-         Return Not m_IsDisposed
-      End Get
-   End Property
 #End Region
 
 #Region "Public methods"
@@ -321,5 +310,15 @@ Public Class FileAndKeyEncryption : Implements IDisposable
       ' Uncomment the following line if Finalize() is overridden above.
       ' GC.SuppressFinalize(Me)
    End Sub
+
+   ''' <summary>
+   ''' Checks whether this instance is valid
+   ''' </summary>
+   ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
+   Public ReadOnly Property IsValid As Boolean
+      Get
+         Return Not m_IsDisposed
+      End Get
+   End Property
 #End Region
 End Class
