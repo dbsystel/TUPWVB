@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.1
+' Version: 2.0.2
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
@@ -27,6 +27,7 @@
 '    2020-12-08: V1.0.3: Explain usage of IndexOutOfRangeException.
 '    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
 '    2020-12-11: V2.0.1: Put IsValid method were it belongs.
+'    2020-12-14: V2.0.2: Corrected some comments.
 '
 
 ''' <summary>
@@ -192,8 +193,8 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' <summary>
    ''' Returns the hash code of this <see cref="ShuffledByteArray"/> instance.
    ''' </summary>
-   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
-   ''' <returns>The hash code</returns>
+   ''' <exception cref="ObjectDisposedException">Thrown when the instance has already been disposed of.</exception>
+   ''' <returns>The hash code.</returns>
    Public Overrides Function GetHashCode() As Integer
       CheckState()
 
@@ -204,7 +205,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' Compares the specified object with this <see cref="ShuffledByteArray"/> instance.
    ''' </summary>
    ''' <param name="obj">The object to compare.</param>
-   ''' <exception cref="ObjectDisposedException">Thrown when the <see cref="ShuffledByteArray"/> has already been disposed of.</exception>
+   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
    ''' <returns><c>true</c> if byte arrays of both object are equal, otherwise <c>false</c>}.</returns>
    Public Overrides Function Equals(obj As Object) As Boolean
       Dim result As Boolean = False
@@ -227,7 +228,6 @@ Public Class ShuffledByteArray : Implements IDisposable
    End Function
 #End Region
 #End Region
-
 
 #Region "Private methods"
    '******************************************************************
