@@ -26,7 +26,7 @@
 '    2020-05-18: V1.0.2: Instantiate lock object.
 '    2020-12-08: V1.0.3: Explain usage of IndexOutOfRangeException.
 '    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
-'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
+'    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '    2020-12-14: V2.0.2: Corrected some comments.
 '
 
@@ -191,7 +191,7 @@ Public Class ShuffledByteArray : Implements IDisposable
 
 #Region "Overridden Object methods"
    ''' <summary>
-   ''' Returns the hash code of this <see cref="ShuffledByteArray"/> instance.
+   ''' Returns the hash code of this instance.
    ''' </summary>
    ''' <exception cref="ObjectDisposedException">Thrown when the instance has already been disposed of.</exception>
    ''' <returns>The hash code.</returns>
@@ -202,7 +202,7 @@ Public Class ShuffledByteArray : Implements IDisposable
    End Function
 
    ''' <summary>
-   ''' Compares the specified object with this <see cref="ShuffledByteArray"/> instance.
+   ''' Compares the specified object with this instance.
    ''' </summary>
    ''' <param name="obj">The object to compare.</param>
    ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>

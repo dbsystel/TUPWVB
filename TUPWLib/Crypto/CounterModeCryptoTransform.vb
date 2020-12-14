@@ -25,7 +25,7 @@
 '    2020-05-12: V1.1.0: Corrected handling of 0 length final block.
 '    2020-06-18: V1.1.1: Corrected handling of null parameters in constructors.
 '    2020-12-10: V2.0.0: Added correct handling of disposed instance.
-'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
+'    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '
 
 Imports System.Security.Cryptography

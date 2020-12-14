@@ -33,7 +33,7 @@
 '    2020-11-12: V1.3.0: Implemented V6 of the encoded format.
 '    2020-12-10: V1.3.1: Made hashing simpler and 2.5 times faster.
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
-'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
+'    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '
 
 Imports System.IO

@@ -18,13 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.1.0
+' Version: 1.2.0
 '
 ' Change history:
 '    2020-04-21: V1.0.1: Created.
 '    2020-05-15: V1.0.1: Made constants consistent with types.
 '    2020-05-27: V1.1.0: Refactored function value mapping into own shared class.
-'    2020-06-19: V1.2.1: Use new FunctionValueRangeMapperAPI.
+'    2020-06-19: V1.2.0: Use new FunctionValueRangeMapperAPI.
 '
 
 Imports System.Security.Cryptography

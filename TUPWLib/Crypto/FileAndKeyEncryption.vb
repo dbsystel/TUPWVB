@@ -23,7 +23,7 @@
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
-'    2020-12-11: V2.0.1: Put IsValid method were it belongs.
+'    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '
 
 Imports System.IO
