@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.1
+' Version: 2.1.0
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
+'    2020-12-16: V2.1.0: Made usage of SyncLock for disposal consistent and added check for maximum file size.
 '
 
 Imports System.IO
@@ -32,6 +33,13 @@ Imports System.IO
 ''' Provides encryption by key generated from a file and a key
 ''' </summary>
 Public Class FileAndKeyEncryption : Implements IDisposable
+#Region "Private constants"
+   ''' <summary>
+   ''' Maximum allowed key file size
+   ''' </summary>
+   Private Const MAX_KEY_FILE_SIZE As Long = 10_000_000L
+#End Region
+
 #Region "Instance variables"
    '******************************************************************
    ' Instance variables
@@ -41,6 +49,11 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    ''' Instance of <see cref="SplitKeyEncryption"/> to use behind this interface.
    ''' </summary>
    Private ReadOnly m_SplitKeyEncryption As SplitKeyEncryption
+
+   ''' <summary>
+   ''' Object only used for locking the call to Dispose.
+   ''' </summary>
+   Private ReadOnly m_LockObject As New Object
 #End Region
 
 #Region "Constructors"
@@ -53,11 +66,11 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    ''' </summary>
    ''' <param name="hmacKey">Key for the HMAC of the file.</param>
    ''' <param name="keyFilePath">Path of key file.</param>
-   ''' <exception cref="ArgumentException">Thrown if <paramref name="keyFilePath"/> contains invalid characters.</exception>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="keyFilePath"/> contains invalid characters or the contents are too large.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if any parameter is <c>Nothing</c>.</exception>
    ''' <exception cref="DirectoryNotFoundException">Thrown if the directory in <paramref name="keyFilePath"/> does not exist.</exception>
    ''' <exception cref="FileNotFoundException">Thrown if <paramref name="keyFilePath"/> is not found.</exception>
-   ''' <exception cref="IOException">Thrown if an I/O error occurs during access to the file.</exception>
+   ''' <exception cref="IOException">Thrown if an I/O error occurs during accessing the file.</exception>
    ''' <exception cref="NotSupportedException">Thrown if <paramref name="keyFilePath"/> is in an invalid format.</exception>
    ''' <exception cref="PathTooLongException">Thrown if <paramref name="keyFilePath"/> is too long.</exception>
    ''' <exception cref="UnauthorizedAccessException">Thrown if <paramref name="keyFilePath"/> specifies a directory or the caller
@@ -225,11 +238,22 @@ Public Class FileAndKeyEncryption : Implements IDisposable
 
 #Region "File helper methods"
    ''' <summary>
+   ''' Get the length of a file.
+   ''' </summary>
+   ''' <param name="aFilePath">Path to the file.</param>
+   ''' <returns>Length of the file.</returns>
+   Private Shared Function GetFileSize(aFilePath As String) As Long
+      Dim fi As New FileInfo(aFilePath)
+
+      Return fi.Length
+   End Function
+
+   ''' <summary>
    ''' Get the content of the key file.
    ''' </summary>
    ''' <param name="keyFilePath">Key file to be used.</param>
    ''' <returns>Content of the key file.</returns>
-   ''' <exception cref="ArgumentException">Thrown if <paramref name="keyFilePath"/> contains invalid characters.</exception>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="keyFilePath"/> contains invalid characters or the file contents are too large.</exception>
    ''' <exception cref="DirectoryNotFoundException">Thrown if the directory in <paramref name="keyFilePath"/> does not exist.</exception>
    ''' <exception cref="FileNotFoundException">Thrown if <paramref name="keyFilePath"/> is not found.</exception>
    ''' <exception cref="IOException">Thrown if an I/O error occurs during access to the file.</exception>
@@ -241,9 +265,13 @@ Public Class FileAndKeyEncryption : Implements IDisposable
       Dim result As Byte()
 
       If File.Exists(keyFilePath) Then
-         result = File.ReadAllBytes(keyFilePath)
+         If GetFileSize(keyFilePath) <= MAX_KEY_FILE_SIZE Then
+            result = File.ReadAllBytes(keyFilePath)
+         Else
+            Throw New ArgumentException($"Key file is too large (maximum is {MAX_KEY_FILE_SIZE:#,##0} bytes)")
+         End If
       Else
-         Throw New FileNotFoundException("File '" & keyFilePath & "' does not exist")
+         Throw New FileNotFoundException("Key file does not exist", keyFilePath)
       End If
 
       Return result
@@ -282,7 +310,7 @@ Public Class FileAndKeyEncryption : Implements IDisposable
             '
             ' Disposing of resources needs to be synchronized to prevent a race condition.
             '
-            SyncLock m_SplitKeyEncryption
+            SyncLock m_LockObject
                m_SplitKeyEncryption.Dispose()
             End SyncLock
          End If
@@ -317,7 +345,9 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
    Public ReadOnly Property IsValid As Boolean
       Get
-         Return Not m_IsDisposed
+         SyncLock m_LockObject
+            Return Not m_IsDisposed
+         End SyncLock
       End Get
    End Property
 #End Region

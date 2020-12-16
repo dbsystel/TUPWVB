@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.1
+' Version: 2.0.2
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -34,6 +34,7 @@
 '    2020-12-10: V1.3.1: Made hashing simpler and 2.5 times faster.
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
+'    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent and changed some message creations.
 '
 
 Imports System.IO
@@ -89,7 +90,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Maximum length for source bytes.
    ''' </summary>
-   Private Const MAXIMUM_SOURCE_BYTES_LENGTH As UInteger = 10000000
+   Private Const MAXIMUM_SOURCE_BYTES_LENGTH As UInteger = 10_000_000
 
    ''' <summary>
    ''' Minimum entropy for source bytes.
@@ -209,6 +210,11 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' HMAC key to use.
    ''' </summary>
    Private m_HMACKey As ProtectedByteArray
+
+   ''' <summary>
+   ''' Object only used for locking the call to Dispose.
+   ''' </summary>
+   Private ReadOnly m_LockObject As New Object
 #End Region
 
 #Region "Constructors"
@@ -449,10 +455,10 @@ Public Class SplitKeyEncryption : Implements IDisposable
       RequireNonNull(aHMACKey, NameOf(aHMACKey))
 
       If aHMACKey.Length < MINIMUM_HMAC_KEY_LENGTH Then _
-         Throw New ArgumentException("HMAC key length is less than " & MINIMUM_HMAC_KEY_LENGTH.ToString())
+         Throw New ArgumentException($"HMAC key length is less than {MINIMUM_HMAC_KEY_LENGTH}")
 
       If aHMACKey.Length > MAXIMUM_HMAC_KEY_LENGTH Then _
-         Throw New ArgumentException("HMAC key length is larger than " & MAXIMUM_HMAC_KEY_LENGTH.ToString())
+         Throw New ArgumentException($"HMAC key length is larger than {MAXIMUM_HMAC_KEY_LENGTH}")
    End Sub
 
    ''' <summary>
@@ -491,10 +497,10 @@ Public Class SplitKeyEncryption : Implements IDisposable
       End If
 
       If ec.Count < MINIMUM_SOURCE_BYTES_LENGTH Then _
-         Throw New ArgumentException("There are less than " & MINIMUM_SOURCE_BYTES_LENGTH.ToString() & " source bytes")
+         Throw New ArgumentException($"There are less than {MINIMUM_SOURCE_BYTES_LENGTH} source bytes")
 
       If ec.Count > MAXIMUM_SOURCE_BYTES_LENGTH Then _
-         Throw New ArgumentException("There are more than " & MAXIMUM_SOURCE_BYTES_LENGTH.ToString() & " source bytes")
+         Throw New ArgumentException($"There are more than {MAXIMUM_SOURCE_BYTES_LENGTH:#,##0} source bytes")
    End Sub
 #End Region
 
@@ -1201,9 +1207,12 @@ Public Class SplitKeyEncryption : Implements IDisposable
             '
             ' Disposing of resources needs to be synchronized to prevent a race condition.
             '
-            SyncLock m_EncryptionKey
+            SyncLock m_LockObject
                m_EncryptionKey.Dispose()
                m_HMACKey.Dispose()
+
+               m_EncryptionKey = Nothing
+               m_HMACKey = Nothing
             End SyncLock
          End If
 
@@ -1237,7 +1246,9 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
    Public ReadOnly Property IsValid As Boolean
       Get
-         Return Not m_IsDisposed
+         SyncLock m_LockObject
+            Return Not m_IsDisposed
+         End SyncLock
       End Get
    End Property
 #End Region

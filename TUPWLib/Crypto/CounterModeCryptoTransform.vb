@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.1
+' Version: 2.0.2
 '
 ' Change history:
 '    2020-04-30: V1.0.0: Created.
@@ -26,6 +26,7 @@
 '    2020-06-18: V1.1.1: Corrected handling of null parameters in constructors.
 '    2020-12-10: V2.0.0: Added correct handling of disposed instance.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
+'    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent.
 '
 
 Imports System.Security.Cryptography
@@ -54,6 +55,11 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    Private m_BlockSizeInBytes As Integer
    Private m_XorMask As Byte()
    Private m_XorMaskPosition As Integer
+
+   ''' <summary>
+   ''' Object only used for locking the call to Dispose.
+   ''' </summary>
+   Private ReadOnly m_LockObject As New Object
 #End Region
 
 #Region "Constructor"
@@ -370,6 +376,26 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
          ArrayHelper.Clear(m_Counter)
    End Sub
 #End Region
+
+#Region "Data helpers"
+   ''' <summary>
+   ''' Clear all data.
+   ''' </summary>
+   Private Sub ClearData()
+      m_XorMaskPosition = 0
+
+      ArrayHelper.Clear(m_Counter)
+      ArrayHelper.Clear(m_XorMask)
+
+      m_CounterEncryptor.Dispose()
+      m_SymmetricAlgorithm.Dispose()
+
+      m_Counter = Nothing
+      m_XorMask = Nothing
+      m_CounterEncryptor = Nothing
+      m_SymmetricAlgorithm = Nothing
+   End Sub
+#End Region
 #End Region
 
 #Region "IDisposable Support"
@@ -389,16 +415,10 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
          '
          ' Disposing of resources needs to be synchronized to prevent a race condition.
          '
-         SyncLock m_SymmetricAlgorithm
+         SyncLock m_LockObject
             m_IsDisposed = True
 
-            m_XorMaskPosition = 0
-
-            ArrayHelper.Clear(m_Counter)
-            ArrayHelper.Clear(m_XorMask)
-
-            m_CounterEncryptor.Dispose()
-            m_SymmetricAlgorithm.Dispose()
+            ClearData()
          End SyncLock
 
          ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
@@ -431,9 +451,10 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
    Public ReadOnly Property IsValid As Boolean
       Get
-         Return Not m_IsDisposed
+         SyncLock m_LockObject
+            Return Not m_IsDisposed
+         End SyncLock
       End Get
    End Property
-
 #End Region
 End Class

@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.1
+' Version: 2.0.2
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
 '    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
+'    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent.
 '
 
 ''' <summary>
@@ -44,6 +45,11 @@ Public Class ProtectedByteArray : Implements IDisposable
 
    Private m_ProtectedArray As ShuffledByteArray
    Private m_Obfuscation As ShuffledByteArray
+
+   ''' <summary>
+   ''' Object only used for locking the call to Dispose.
+   ''' </summary>
+   Private ReadOnly m_LockObject As New Object
 #End Region
 
 #Region "Constructors"
@@ -285,13 +291,16 @@ Public Class ProtectedByteArray : Implements IDisposable
       '
       ' Disposing of resources needs to be synchronized to prevent a race condition.
       '
-      SyncLock m_ProtectedArray
+      SyncLock m_LockObject
          If Not m_IsDisposed Then
             m_IsDisposed = True
 
             If disposeManagedResources Then
                m_ProtectedArray.Dispose()
                m_Obfuscation.Dispose()
+
+               m_ProtectedArray = Nothing
+               m_Obfuscation = Nothing
             End If
 
             ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
@@ -325,7 +334,9 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' <returns><c>True</c>, if this instance has not been disposed of, <c>false</c> otherwise.</returns>
    Public ReadOnly Property IsValid() As Boolean
       Get
-         Return m_ProtectedArray.IsValid
+         SyncLock m_LockObject
+            Return Not m_IsDisposed
+         End SyncLock
       End Get
    End Property
 #End Region

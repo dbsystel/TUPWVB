@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.2
+' Version: 2.0.3
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
@@ -28,6 +28,7 @@
 '    2020-12-10: V2.0.0: Throw ObjectDisposedException instead of InvalidOperationException.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '    2020-12-14: V2.0.2: Corrected some comments.
+'    2020-12-16: V2.0.3: Made usage of SyncLock for disposal consistent.
 '
 
 ''' <summary>
@@ -459,6 +460,9 @@ Public Class ShuffledByteArray : Implements IDisposable
       m_HashCode = 0
 
       m_StoredArrayLength = 0
+
+      m_ByteArray = Nothing
+      m_IndexArray = Nothing
    End Sub
 #End Region
 
@@ -606,7 +610,9 @@ Public Class ShuffledByteArray : Implements IDisposable
    ''' <returns><c>true</c>, if this instance is in a valid state, <c>false</c>, if this instance has already been disposed of.</returns>
    Public ReadOnly Property IsValid As Boolean
       Get
-         Return Not m_IsDisposed
+         SyncLock m_LockObject
+            Return Not m_IsDisposed
+         End SyncLock
       End Get
    End Property
 #End Region
