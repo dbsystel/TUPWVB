@@ -23,6 +23,7 @@
 ' Change history:
 '    2020-11-12: V1.0.0: Created.
 '    2020-11-13: V1.1.0: Use unified method for mapping tables.
+'    2021-01-04: V1.1.1: Corrected typo.
 '
 
 ''' <summary>
@@ -95,7 +96,7 @@ Public NotInheritable Class Base32Encoding
    ' The mapping is constructed so that there are no vowels, no B that can be confused with 8,
    ' no S that can be confused with 5, no O Or Q that can be confused with 0,
    ' no 1, I And L that can be confused with each other, no R that can be confused with P And
-   ' no U And W that can be confused with each other And with V.
+   ' no U And W that can be confused with each other and with V.
    '
 
    ''' <summary>

@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.2
+' Version: 2.0.4
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -35,6 +35,8 @@
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent and changed some message creations.
+'    2021-01-04: V2.0.3: Fixed some error messages.
+'    2021-01-04: V2.0.4: Corrected naming of some methods and improved error handling.
 '
 
 Imports System.IO
@@ -446,7 +448,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    End Sub
 
    ''' <summary>
-   ''' Checkt the length of the HMAC key.
+   ''' Check the length of the HMAC key.
    ''' </summary>
    ''' <param name="aHMACKey">HMAC key.</param>
    ''' <exception cref="ArgumentException">Thrown, if the HMAC key is too short or too long.</exception>
@@ -475,24 +477,24 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Dim sourceLength As Integer
 
       For i As Integer = 0 To sourceBytes.Length - 1
-         RequireNonNull(sourceBytes(i), NameOf(sourceBytes) & "(" & i.ToString() & ")")
+         RequireNonNull(sourceBytes(i), $"{NameOf(sourceBytes)}({i})")
 
          sourceLength = sourceBytes(i).Length
 
          If sourceLength > 0 Then
             ec.AddBytes(sourceBytes(i))
          Else
-            Throw New ArgumentException(NameOf(sourceBytes) & "(" & i.ToString() & ") has 0 length")
+            Throw New ArgumentException($"{NameOf(sourceBytes)}({i}) has 0 length")
          End If
       Next
 
       If ec.GetInformationInBits() < MINIMUM_SOURCE_BITS Then
          Dim entropy As Double = ec.GetEntropy()
 
-         If entropy > ENTROPY_THRESHOLD Then
-            Throw New ArgumentException("There is not enough information provided in the source bytes. Try to increase the length to at least " & CInt(Math.Round(MINIMUM_SOURCE_BITS / entropy) + 1).ToString() & " bytes")
+         If entropy >= ENTROPY_THRESHOLD Then
+            Throw New ArgumentException($"There is not enough information provided in the source bytes. Try to increase the length to at least {CInt(Math.Round(MINIMUM_SOURCE_BITS / entropy) + 1)} bytes")
          Else
-            Throw New ArgumentException("There is no information provided in the source bytes (i.e. there are only identical byte values). Use bytes with varying values.")
+            Throw New ArgumentException("There is no information provided in the source bytes (i.e. there are only identical byte values). Use bytes with varying values")
          End If
       End If
 
@@ -839,17 +841,17 @@ Public Class SplitKeyEncryption : Implements IDisposable
    End Sub
 
    ''' <summary>
-   ''' Return unpadded string bytes depending on format id.
+   ''' Return unpadded data bytes depending on the format id.
    ''' </summary>
    ''' <param name="formatId">Format id of data.</param>
-   ''' <param name="paddedDecryptedStringBytes">Byte array of padded decrypted bytes.</param>
+   ''' <param name="paddedDecryptedDataBytes">Byte array of padded decrypted bytes.</param>
    ''' <returns>Unpadded decrypted bytes.</returns>
-   Private Shared Function GetUnpaddedStringBytes(formatId As Byte, paddedDecryptedStringBytes As Byte()) As Byte()
+   Private Shared Function GetUnpaddedDataBytes(formatId As Byte, paddedDecryptedDataBytes As Byte()) As Byte()
       ' Formats 1 and 2 use padding. Starting from format 3 blinding is used.
       If formatId >= FORMAT_ID_USE_BLINDING Then
-         Return ByteArrayBlinding.UnBlindByteArray(paddedDecryptedStringBytes)
+         Return ByteArrayBlinding.UnBlindByteArray(paddedDecryptedDataBytes)
       Else
-         Return ArbitraryTailPadding.RemovePadding(paddedDecryptedStringBytes)
+         Return ArbitraryTailPadding.RemovePadding(paddedDecryptedDataBytes)
       End If
    End Function
 
@@ -869,7 +871,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim decryptionKey As Byte() = Nothing
 
-      Dim paddedDecryptedStringBytes As Byte() = Nothing
+      Dim paddedDecryptedDataBytes As Byte() = Nothing
 
       '
       ' Wrap everything in a try-catch-block as there are data that need to be cleared before rethrowing
@@ -880,14 +882,14 @@ Public Class SplitKeyEncryption : Implements IDisposable
          decryptionKey = GetKeyForEncryptionDependingOnSubject(subjectBytes)
 
          Using aesDecryptor = GetCryptoTransformForCipherMode(cipherModeForFormatId, decryptionKey, ep.iv)
-            paddedDecryptedStringBytes = DecryptDataWithCryptoTransform(aesDecryptor, ep.encryptedData)
+            paddedDecryptedDataBytes = DecryptDataWithCryptoTransform(aesDecryptor, ep.encryptedData)
          End Using
 
          ArrayHelper.Clear(decryptionKey)   ' Clear sensitive data
 
-         result = GetUnpaddedStringBytes(ep.formatId(0), paddedDecryptedStringBytes)
+         result = GetUnpaddedDataBytes(ep.formatId(0), paddedDecryptedDataBytes)
 
-         ArrayHelper.Clear(paddedDecryptedStringBytes)   ' Clear sensitive data
+         ArrayHelper.Clear(paddedDecryptedDataBytes)   ' Clear sensitive data
 
       Catch ex As Exception
          '
@@ -896,8 +898,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
          If decryptionKey IsNot Nothing Then _
             ArrayHelper.Clear(decryptionKey)
 
-         If paddedDecryptedStringBytes IsNot Nothing Then _
-            ArrayHelper.Clear(paddedDecryptedStringBytes)
+         If paddedDecryptedDataBytes IsNot Nothing Then _
+            ArrayHelper.Clear(paddedDecryptedDataBytes)
 
          Throw   ' Rethrow exception
       End Try
@@ -989,7 +991,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Shared Function CalculateStringBuilderCapacityForEncryptionParts(ep As EncryptionParts) As Integer
       Dim arrayLengths As Integer = ep.TotalLength
 
-      Return 4 + arrayLengths + (arrayLengths >> 1) + (arrayLengths >> 2)
+      Return 4 + arrayLengths + (arrayLengths >> 1) + (arrayLengths >> 2) ' 4 + arrayLengths * (1 + 1/2 + 1/4 = 1,75 = 7/4)
    End Function
 
    ''' <summary>
@@ -1036,7 +1038,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
             result.checksum = UnpaddedBase64.FromUnpaddedBase64String(parts(3))
          End If
       Else
-         Throw New ArgumentException("Number of '" & separator & "' separated parts in encrypted text is not 4")
+         Throw New ArgumentException($"Number of '{separator}' separated parts in encrypted text is not 4")
       End If
 
       Return result
@@ -1053,7 +1055,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Function GetChecksumForEncryptionParts(ep As EncryptionParts, subjectBytes As Byte()) As Byte()
       Dim result As Byte()
 
-      Dim hmacKey As Byte() = GetHMACKeyForFormat(ep.formatId(0), subjectBytes)
+      Dim hmacKey As Byte() = Nothing
 
       Dim hmac As HMACSHA256 = Nothing
 
@@ -1063,6 +1065,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
       ' and the "catch" part.
       '
       Try
+         hmacKey = GetHMACKeyForFormat(ep.formatId(0), subjectBytes)
+
          hmac = New HMACSHA256(hmacKey)
 
          hmac.TransformBlock(ep.formatId, 0, ep.formatId.Length, ep.formatId, 0)
@@ -1078,7 +1082,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Catch ex As Exception
          ' Clear sensitive data
-         ArrayHelper.Clear(hmacKey)
+         If hmacKey IsNot Nothing Then _
+            ArrayHelper.Clear(hmacKey)
 
          If hmac IsNot Nothing Then _
             hmac.Clear()
