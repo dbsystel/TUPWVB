@@ -94,9 +94,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="TUPWLib">
-      <HintPath>..\TUPWLib\bin\Debug\TUPWLib.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
@@ -164,6 +161,10 @@
   <ItemGroup>
     <ProjectReference Include="..\TUPWLib\TUPWLib.vbproj">
       <Project>{f3305e3a-bad3-4ca3-8431-2c96e346ef81}</Project>
+      <Name>TUPWLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TUPWLib\TUPWLib.vbproj">
+      <Project>{2e46a307-075e-4dc3-9d8a-f5fa7ba6acd4}</Project>
       <Name>TUPWLib</Name>
     </ProjectReference>
   </ItemGroup>

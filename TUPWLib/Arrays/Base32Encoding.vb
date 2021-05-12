@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2021 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.1.0
+' Version: 1.2.0
 '
 ' Change history:
 '    2020-11-12: V1.0.0: Created.
 '    2020-11-13: V1.1.0: Use unified method for mapping tables.
 '    2021-01-04: V1.1.1: Corrected typo.
+'    2021-05-12: V1.2.0: Throw correct exception on invalid character.
 '
 
 ''' <summary>
@@ -131,8 +132,9 @@ Public NotInheritable Class Base32Encoding
    ''' </summary>
    ''' <param name="encodedValue">The Base32 string to decode.</param>
    ''' <returns>The decoded Base32 string as a byte array.</returns>
-   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    Public Shared Function Decode(encodedValue As String) As Byte()
       Return DecodeNewBufferWithMapping(encodedValue, RFC_4648_CHAR_TO_VALUE)
    End Function
@@ -143,8 +145,9 @@ Public NotInheritable Class Base32Encoding
    ''' <param name="encodedValue">The Base32 string to decode.</param>
    ''' <param name="destinationBuffer">Byte array where the decoded values are placed.</param>
    ''' <returns>The length of the bytes written into the destination buffer.</returns>
-   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    Public Shared Function Decode(encodedValue As String, destinationBuffer As Byte()) As Integer
       Return DecodeExistingBufferWithMapping(encodedValue, destinationBuffer, RFC_4648_CHAR_TO_VALUE)   ' destinationBuffer is checked in the called method
    End Function
@@ -156,6 +159,7 @@ Public NotInheritable Class Base32Encoding
    ''' <returns>The decoded spell-safe Base32 string as a byte array.</returns>
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid spell-safe Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    Public Shared Function DecodeSpellSafe(encodedValue As String) As Byte()
       Return DecodeNewBufferWithMapping(encodedValue, SPELL_SAFE_CHAR_TO_VALUE)
    End Function
@@ -168,6 +172,7 @@ Public NotInheritable Class Base32Encoding
    ''' <returns>The length of the bytes written into the destination buffer.</returns>
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    Public Shared Function DecodeSpellSafe(encodedValue As String, destinationBuffer As Byte()) As Integer
       Return DecodeExistingBufferWithMapping(encodedValue, destinationBuffer, SPELL_SAFE_CHAR_TO_VALUE)   ' destinationBuffer is checked in the called method
    End Function
@@ -224,6 +229,9 @@ Public NotInheritable Class Base32Encoding
    ''' </summary>
    ''' <param name="encodedValue">Encoded value to decode.</param>
    ''' <param name="mapCharToByte">Mapping table to use.</param>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> has an invalid length.</exception>
+   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    ''' <returns>Newly created byte array with the decoded bytes.</returns>
    Private Shared Function DecodeNewBufferWithMapping(encodedValue As String, mapCharToByte As Byte()) As Byte()
       Dim byteCount As Integer = CheckEncodedValue(encodedValue)
@@ -242,6 +250,9 @@ Public NotInheritable Class Base32Encoding
    ''' <param name="encodedValue">Encoded value to decode.</param>
    ''' <param name="destinationBuffer">Byte array where the decoded values are placed.</param>
    ''' <param name="mapCharToByte">Mapping table to use.</param>
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> has an invalid length.</exception>
+   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    ''' <returns>Number of bytes in the <paramref name="destinationBuffer"/> that are filled.</returns>
    Private Shared Function DecodeExistingBufferWithMapping(encodedValue As String, destinationBuffer As Byte(), mapCharToByte As Byte()) As Integer
       Dim byteCount As Integer = CheckEncodedValue(encodedValue)
@@ -261,8 +272,7 @@ Public NotInheritable Class Base32Encoding
    ''' </summary>
    ''' <param name="encodedValue">The Base32 string to decode.</param>
    ''' <param name="mapCharToByte">Array with mappings from the character to the corresponding byte.</param>
-   ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> contains an invalid Base32 character, or has an invalid length.</exception>
-   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="FormatException">Thrown if <paramref name="encodedValue"/> contains an invalid character.</exception>
    Private Shared Sub DecodeWorker(encodedValue As String, destinationBuffer As Byte(), byteCount As Integer, mapCharToByte As Byte())
       Dim actByte As Byte = 0
       Dim bitsRemaining As Byte = BITS_PER_BYTE
@@ -279,7 +289,11 @@ Public NotInheritable Class Base32Encoding
 
          If (bitsRemaining > BITS_PER_CHARACTER) Then
             mask = charValue << (bitsRemaining - BITS_PER_CHARACTER)
+            ' This is *not* a silly bit operation
+            ' SonarLint is silly in that it does not consider that this is done in a loop
+#Disable Warning S2437 ' Silly bit operations should not be performed
             actByte = actByte Or mask
+#Enable Warning S2437 ' Silly bit operations should not be performed
             bitsRemaining -= BITS_PER_CHARACTER
          Else
             mask = charValue >> (BITS_PER_CHARACTER - bitsRemaining)
@@ -310,6 +324,8 @@ Public NotInheritable Class Base32Encoding
    ''' <param name="aByteArray">The byte array to encode.</param>
    ''' <param name="mapByteToChar">Array with mappings from the byte to the corresponding character.</param>
    ''' <param name="withPadding"><c>True</c>: Result will be padded, <c>False</c>: Result will not be padded</param>
+   ''' <exception cref="ArgumentNullException">Thrown if <paramref name="aByteArray"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="InvalidOperationException">Thrown when there is a bug in the processing of the bytes.</exception>
    ''' <returns>The Base32 representation of the bytes in <paramref name="aByteArray"/>.</returns>
    Private Shared Function EncodeWorker(aByteArray As Byte(), mapByteToChar As Char(), withPadding As Boolean) As String
       Dim lastIndex As Integer
@@ -333,6 +349,7 @@ Public NotInheritable Class Base32Encoding
    ''' <param name="mapByteToChar">Array with mappings from the byte to the corresponding character.</param>
    ''' <returns>The encoded bytes as a string. Note that <paramref name="lastIndex"/> is also a return parameter.</returns>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="aByteArray"/> is <c>Nothing</c>.</exception>
+   ''' <exception cref="InvalidOperationException">Thrown when there is a bug in the processing of the bytes.</exception>
    Private Shared Function EncodeInternal(aByteArray As Byte(), ByRef lastIndex As Integer, mapByteToChar As Char()) As Char()
       If aByteArray Is Nothing Then _
          Throw New ArgumentNullException(NameOf(aByteArray))
@@ -346,7 +363,11 @@ Public NotInheritable Class Base32Encoding
          Dim arrayIndex As Integer = 0
 
          For Each b As Byte In aByteArray
+            ' This is *not* a silly bit operation
+            ' SonarLint is silly in that it does not consider that this is done in a loop
+#Disable Warning S2437 ' Silly bit operations should not be performed
             actValue = actValue Or (b >> (BITS_PER_BYTE - bitsRemaining))
+#Enable Warning S2437 ' Silly bit operations should not be performed
             result(arrayIndex) = ValueToChar(actValue, mapByteToChar)
             arrayIndex += 1
 
@@ -383,6 +404,7 @@ Public NotInheritable Class Base32Encoding
    ''' </summary>
    ''' <param name="c">Character to convert.</param>
    ''' <param name="mapCharToByte">Map table for conversion.</param>
+   ''' <exception cref="FormatException">Thrown when the character <paramref name="c"/> is not a valid character for the mapping <paramref name="mapCharToByte"/>.</exception>
    ''' <returns>Value corresponding to character <paramref name="c"/>.</returns>
    Private Shared Function CharToValue(c As Char, mapCharToByte As Byte()) As Byte
       Dim index As Integer = Asc(c) - CODEPOINT_ZERO
@@ -393,11 +415,10 @@ Public NotInheritable Class Base32Encoding
          If result <> INVALID_CHARACTER_VALUE Then
             Return result
          Else
-            Throw New ArgumentException(ERROR_TEXT_INVALID_CHARACTER, NameOf(c))
+            Throw New FormatException(ERROR_TEXT_INVALID_CHARACTER)
          End If
-
       Else
-         Throw New ArgumentException(ERROR_TEXT_INVALID_CHARACTER, NameOf(c))
+         Throw New FormatException(ERROR_TEXT_INVALID_CHARACTER)
       End If
    End Function
 
@@ -406,12 +427,13 @@ Public NotInheritable Class Base32Encoding
    ''' </summary>
    ''' <param name="b">Value to map</param>
    ''' <param name="mapByteToChar">Map table for conversion.</param>
+   ''' <exception cref="InvalidOperationException">Thrown when the byte <paramref name="b"/> is not a valid byte for the mapping <paramref name="mapByteToChar"/>.</exception>
    ''' <returns>Character corresponding to value <paramref name="b"/>.</returns>
    Private Shared Function ValueToChar(b As Byte, mapByteToChar As Char()) As Char
       If b < mapByteToChar.Length Then
          Return mapByteToChar(b)
       Else
-         Throw New ArgumentException(ERROR_TEXT_INVALID_BYTE_VALUE, NameOf(b))
+         Throw New InvalidOperationException(ERROR_TEXT_INVALID_BYTE_VALUE)
       End If
    End Function
 #End Region
@@ -421,9 +443,9 @@ Public NotInheritable Class Base32Encoding
    ''' Checks if <paramref name="encodedValue"/> has a valid length and returns it, if it has one.
    ''' </summary>
    ''' <param name="encodedValue">The encoded value to check.</param>
-   ''' <returns>The number of decoded bytes in the encdoed value.</returns>
    ''' <exception cref="ArgumentException">Thrown if <paramref name="encodedValue"/> has an invalid length.</exception>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="encodedValue"/> is <c>Nothing</c>.</exception>
+   ''' <returns>The number of decoded bytes in the encoded value.</returns>
    Private Shared Function CheckEncodedValue(encodedValue As String) As Integer
       If encodedValue Is Nothing Then _
          Throw New ArgumentNullException(NameOf(encodedValue))

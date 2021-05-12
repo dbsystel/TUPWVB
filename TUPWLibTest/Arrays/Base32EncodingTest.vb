@@ -18,10 +18,11 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 1.1.0
 '
 ' Change history:
 '    2020-04-29: V1.0.0: Created.
+'    2021-05-12: V1.1.0: Adapt for changed exceptions.
 '
 
 ' Imports Microsoft.VisualStudio.TestTools.UnitTesting
@@ -419,7 +420,7 @@ Imports DB.BCM.TUPW
 
          Assert.Fail("Expected exception ArgumentException not thrown")
 
-      Catch ex As ArgumentException
+      Catch ex As FormatException
          ' Expected exception
 
       Catch ex As Exception
@@ -509,7 +510,7 @@ Imports DB.BCM.TUPW
 
          Assert.Fail("Expected exception ArgumentException not thrown")
 
-      Catch ex As ArgumentException
+      Catch ex As FormatException
          ' Expected exception
 
       Catch ex As Exception
@@ -525,7 +526,7 @@ Imports DB.BCM.TUPW
 
          Assert.Fail("Expected exception ArgumentException not thrown")
 
-      Catch ex As ArgumentException
+      Catch ex As FormatException
          ' Expected exception
 
       Catch ex As Exception
@@ -633,7 +634,7 @@ Imports DB.BCM.TUPW
 
          Assert.Fail("Expected exception ArgumentException not thrown")
 
-      Catch ex As ArgumentException
+      Catch ex As FormatException
          ' Expected exception
 
       Catch ex As Exception
@@ -705,7 +706,7 @@ Imports DB.BCM.TUPW
 
          Assert.Fail("Expected exception ArgumentException not thrown")
 
-      Catch ex As ArgumentException
+      Catch ex As FormatException
          ' Expected exception
 
       Catch ex As Exception
@@ -721,7 +722,7 @@ Imports DB.BCM.TUPW
 
          Assert.Fail("Expected exception ArgumentException not thrown")
 
-      Catch ex As ArgumentException
+      Catch ex As FormatException
          ' Expected exception
 
       Catch ex As Exception

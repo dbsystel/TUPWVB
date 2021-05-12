@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.4
+' Version: 2.0.6
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -37,6 +37,8 @@
 '    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent and changed some message creations.
 '    2021-01-04: V2.0.3: Fixed some error messages.
 '    2021-01-04: V2.0.4: Corrected naming of some methods and improved error handling.
+'    2021-05-11: V2.0.5: Clearer structure of getting the encryption parts from string.
+'    2021-05-11: V2.0.6: Corrected exception for Base32Encoding.
 '
 
 Imports System.IO
@@ -44,7 +46,7 @@ Imports System.Security.Cryptography
 Imports System.Text
 
 ''' <summary>
-''' SplitKeyEncryption
+''' Encryption with key splitting
 ''' </summary>
 Public Class SplitKeyEncryption : Implements IDisposable
 #Region "Private constants"
@@ -662,38 +664,32 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim paddedSourceBytes As Byte() = Nothing
 
-      Dim aesCipher As AesCng = New AesCng() With {
-         .Mode = CipherMode.CBC,
-         .Padding = PaddingMode.None   ' Never use any of the standard paddings!!!! They are all susceptible to a padding oracle.
-         }
-
-      Dim blockSizeInBytes As Integer = aesCipher.BlockSize >> 3
-
-      result.iv = GetInitializationVector(blockSizeInBytes)
-
-      '
-      ' This is a "try-catch" block instead of a "using" construct because we need to clear the contents of
-      ' an array before handling the exception. A "using" construct would only dispose of the "aesCipher".
       '
       ' There is no "finally" statement as this will only be executed if there is a wrapping "try-catch" block.
       ' To ensure that the array is cleared the corresponding statements are duplicated in the "try"
       ' and the "catch" part.
       '
       Try
-         paddedSourceBytes = PadSourceBytes(sourceBytes, blockSizeInBytes)
+         Using aesCipher As AesCng = New AesCng() With {
+            .Mode = CipherMode.CBC,
+            .Padding = PaddingMode.None   ' Never use any of the standard paddings!!!! They are all susceptible to a padding oracle.
+            }
 
-         ' Encrypt the source string with the iv
-         result.encryptedData = GetEncryptedBytes(aesCipher, paddedSourceBytes, key, result.iv)
+            Dim blockSizeInBytes As Integer = aesCipher.BlockSize >> 3
 
-         ArrayHelper.Clear(paddedSourceBytes)   ' Clear sensitive data
+            result.iv = GetInitializationVector(blockSizeInBytes)
 
-         aesCipher.Dispose()
+            paddedSourceBytes = PadSourceBytes(sourceBytes, blockSizeInBytes)
+
+            ' Encrypt the source string with the iv
+            result.encryptedData = GetEncryptedBytes(aesCipher, paddedSourceBytes, key, result.iv)
+
+            ArrayHelper.Clear(paddedSourceBytes)   ' Clear sensitive data
+         End Using
 
       Catch ex As Exception
          If paddedSourceBytes IsNot Nothing Then _
             ArrayHelper.Clear(paddedSourceBytes)   ' Clear sensitive data
-
-         aesCipher.Dispose()
 
          Throw
       End Try
@@ -814,7 +810,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
          If ep IsNot Nothing Then _
             ep.Zap()
 
-         Throw New ArgumentException("Invalid Base64 encoding", ex)
+         Throw New ArgumentException("Invalid Base32/Base64 encoding", ex)
 
       Catch ex As Exception
          ' Ensure sensitive data are cleared
