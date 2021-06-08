@@ -18,13 +18,14 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.2.0
+' Version: 1.3.0
 '
 ' Change history:
 '    2020-11-12: V1.0.0: Created.
 '    2020-11-13: V1.1.0: Use unified method for mapping tables.
 '    2021-01-04: V1.1.1: Corrected typo.
 '    2021-05-12: V1.2.0: Throw correct exception on invalid character.
+'    2021-05-12: V1.3.0: Direct mapping of a byte value to a char.
 '
 
 ''' <summary>
@@ -33,7 +34,6 @@
 Public NotInheritable Class Base32Encoding
 #Region "Private constants"
 #Region "Error messages"
-   Private Const ERROR_TEXT_INVALID_BYTE_VALUE As String = "Byte is not a valid Base32 value"
    Private Const ERROR_TEXT_INVALID_CHARACTER As String = "Character is not a valid Base32 character"
    Private Const ERROR_TEXT_INVALID_STRING_LENGTH As String = "Invalid Base32 string length"
    Private Const ERROR_DESTINATION_TOO_SMALL As String = "Buffer too small"
@@ -334,7 +334,7 @@ Public NotInheritable Class Base32Encoding
       If withPadding Then _
          lastIndex = PadCharArray(resultArray, lastIndex)
 
-      Dim result As String = New String(resultArray, 0, lastIndex)
+      Dim result As New String(resultArray, 0, lastIndex)
 
       Array.Clear(resultArray, 0, resultArray.Length)
 
@@ -349,7 +349,7 @@ Public NotInheritable Class Base32Encoding
    ''' <param name="mapByteToChar">Array with mappings from the byte to the corresponding character.</param>
    ''' <returns>The encoded bytes as a string. Note that <paramref name="lastIndex"/> is also a return parameter.</returns>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="aByteArray"/> is <c>Nothing</c>.</exception>
-   ''' <exception cref="InvalidOperationException">Thrown when there is a bug in the processing of the bytes.</exception>
+   ''' <exception cref="IndexOutOfRangeException">Thrown when there is a bug in the processing of the bytes.</exception>
    Private Shared Function EncodeInternal(aByteArray As Byte(), ByRef lastIndex As Integer, mapByteToChar As Char()) As Char()
       If aByteArray Is Nothing Then _
          Throw New ArgumentNullException(NameOf(aByteArray))
@@ -368,12 +368,12 @@ Public NotInheritable Class Base32Encoding
 #Disable Warning S2437 ' Silly bit operations should not be performed
             actValue = actValue Or (b >> (BITS_PER_BYTE - bitsRemaining))
 #Enable Warning S2437 ' Silly bit operations should not be performed
-            result(arrayIndex) = ValueToChar(actValue, mapByteToChar)
+            result(arrayIndex) = mapByteToChar(actValue)
             arrayIndex += 1
 
             If bitsRemaining <= BITS_DIFFERENCE Then
                actValue = (b >> (BITS_DIFFERENCE - bitsRemaining)) And CHARACTER_MASK
-               result(arrayIndex) = ValueToChar(actValue, mapByteToChar)
+               result(arrayIndex) = mapByteToChar(actValue)
                arrayIndex += 1
                bitsRemaining += BITS_PER_CHARACTER
             End If
@@ -384,7 +384,7 @@ Public NotInheritable Class Base32Encoding
 
          ' If we did not end with a full char
          If arrayIndex < charCount Then
-            result(arrayIndex) = ValueToChar(actValue, mapByteToChar)
+            result(arrayIndex) = mapByteToChar(actValue)
             arrayIndex += 1
          End If
 
@@ -419,21 +419,6 @@ Public NotInheritable Class Base32Encoding
          End If
       Else
          Throw New FormatException(ERROR_TEXT_INVALID_CHARACTER)
-      End If
-   End Function
-
-   ''' <summary>
-   ''' Maps a value to the corresponding character.
-   ''' </summary>
-   ''' <param name="b">Value to map</param>
-   ''' <param name="mapByteToChar">Map table for conversion.</param>
-   ''' <exception cref="InvalidOperationException">Thrown when the byte <paramref name="b"/> is not a valid byte for the mapping <paramref name="mapByteToChar"/>.</exception>
-   ''' <returns>Character corresponding to value <paramref name="b"/>.</returns>
-   Private Shared Function ValueToChar(b As Byte, mapByteToChar As Char()) As Char
-      If b < mapByteToChar.Length Then
-         Return mapByteToChar(b)
-      Else
-         Throw New InvalidOperationException(ERROR_TEXT_INVALID_BYTE_VALUE)
       End If
    End Function
 #End Region

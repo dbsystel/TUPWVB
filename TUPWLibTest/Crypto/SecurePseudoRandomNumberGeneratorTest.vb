@@ -184,7 +184,10 @@ Imports DB.BCM.TUPW
       Dim collector As Byte = 0
 
       For Each aByte In aByteArray
+         ' This is definitely *not* a silly bit operation as it is performed in a loop
+#Disable Warning S2437 ' Silly bit operations should not be performed
          collector = collector Or aByte
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       Const EXPECTED_COLLECTOR As Byte = &HFF

@@ -42,7 +42,7 @@ Imports DB.BCM.TUPW
    <TestMethod()> Public Sub TestNullArgument()
       Try
 #Disable Warning S1481 ' Unused local variables should be removed
-         Dim pba As ProtectedByteArray = New ProtectedByteArray(Nothing)
+         Dim pba As New ProtectedByteArray(Nothing)
 #Enable Warning S1481 ' Unused local variables should be removed
 
          Assert.Fail(EXPECTED_EXCEPTION)
@@ -50,7 +50,7 @@ Imports DB.BCM.TUPW
       Catch ex As ArgumentNullException
          Dim message As String = ex.Message()
 
-         Assert.IsTrue(message.Contains("arrayToProtect"), message)
+         Assert.IsTrue(message.Contains("sourceArray"), message)
 
       Catch ex As Exception
          Assert.Fail("Exception: " & ex.Message() & " / " & ex.StackTrace())
@@ -58,7 +58,7 @@ Imports DB.BCM.TUPW
    End Sub
 
    <TestMethod()> Public Sub TestEmptyArgument()
-      Dim pba As ProtectedByteArray = New ProtectedByteArray(Array.Empty(Of Byte)())
+      Dim pba As New ProtectedByteArray(Array.Empty(Of Byte)())
 
       Dim result As Byte() = pba.GetData()
 
@@ -70,7 +70,7 @@ Imports DB.BCM.TUPW
 
       ArrayHelper.Fill(ba, FILL_VALUE)
 
-      Dim pba As ProtectedByteArray = New ProtectedByteArray(ba)
+      Dim pba As New ProtectedByteArray(ba)
 
       Assert.IsTrue(ArrayHelper.AreEqual(ba, pba.GetData()), "Data was not correctly retrieved")
       Assert.AreEqual(ba.Length, pba.Length(), "Retrieved data has different length from stored data")
@@ -81,7 +81,7 @@ Imports DB.BCM.TUPW
 
       ArrayHelper.Fill(ba, FILL_VALUE)
 
-      Dim pba As ProtectedByteArray = New ProtectedByteArray(ba)
+      Dim pba As New ProtectedByteArray(ba)
 
       pba.Dispose()
 
@@ -107,13 +107,13 @@ Imports DB.BCM.TUPW
 
       ArrayHelper.Fill(ba, FILL_VALUE)
 
-      Dim pba1 As ProtectedByteArray = New ProtectedByteArray(ba)
-      Dim pba2 As ProtectedByteArray = New ProtectedByteArray(ba)
+      Dim pba1 As New ProtectedByteArray(ba)
+      Dim pba2 As New ProtectedByteArray(ba)
 
       Assert.AreEqual(pba1, pba2, "ProtectedByteArray are not equal when they should be")
       Assert.AreEqual(pba1.GetHashCode(), pba2.GetHashCode(), "ProtectedByteArray do not have identical hash codes")
 
-      Dim pba3 As ProtectedByteArray = New ProtectedByteArray(New Byte(31) {})
+      Dim pba3 As New ProtectedByteArray(New Byte(31) {})
       Assert.AreNotEqual(pba1, pba3, "ProtectedByteArray are equal when they should not be (different keys)")
    End Sub
 #End Region

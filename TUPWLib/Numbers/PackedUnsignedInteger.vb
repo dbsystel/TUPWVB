@@ -222,9 +222,9 @@ Public NotInheritable Class PackedUnsignedInteger
    ''' <param name="aPackedUnsignedInteger">Byte array of packed unsigned integer</param>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="aPackedUnsignedInteger"/> is <c>Nothing</c>.</exception>
    ''' <returns>String representation of the given packed unsigned integer</returns>
-#Disable Warning BC40005   ' We can not shadow a method of the "Object" object when this is a shared method
+#Disable Warning BC40005 ' Member shadows an overridable method in the base type: This does *not* override Object.ToString()
    Public Shared Function ToString(aPackedUnsignedInteger As Byte()) As String
-#Enable Warning BC40005
+#Enable Warning BC40005 ' Member shadows an overridable method in the base type
       Return ToInteger(aPackedUnsignedInteger).ToString()
    End Function
 #End Region

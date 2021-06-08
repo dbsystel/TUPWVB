@@ -200,7 +200,7 @@ Imports DB.BCM.TUPW
    End Sub
 
    ''' <summary>
-   ''' Test if the encryption of a given character array Is correctly decrypted.
+   ''' Test if the encryption of a given character array is correctly decrypted.
    ''' </summary>
    <TestMethod()> Public Sub TestEncryptionDecryptionForCharacterArray()
       Dim myEncryptor As SplitKeyEncryption = Nothing

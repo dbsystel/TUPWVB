@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.6
+' Version: 2.1.0
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -39,6 +39,7 @@
 '    2021-01-04: V2.0.4: Corrected naming of some methods and improved error handling.
 '    2021-05-11: V2.0.5: Clearer structure of getting the encryption parts from string.
 '    2021-05-11: V2.0.6: Corrected exception for Base32Encoding.
+'    2021-06-08: V2.1.0: Use ProtectedByteArray with index masking.
 '
 
 Imports System.IO
@@ -474,7 +475,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Shared Sub CheckSourceBytes(ParamArray sourceBytes As Byte()())
       RequireNonNull(sourceBytes, NameOf(sourceBytes))
 
-      Dim ec As EntropyCalculator = New EntropyCalculator()
+      Dim ec As New EntropyCalculator()
 
       Dim sourceLength As Integer
 
@@ -670,7 +671,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
       ' and the "catch" part.
       '
       Try
-         Using aesCipher As AesCng = New AesCng() With {
+         Using aesCipher As New AesCng() With {
             .Mode = CipherMode.CBC,
             .Padding = PaddingMode.None   ' Never use any of the standard paddings!!!! They are all susceptible to a padding oracle.
             }
@@ -1019,7 +1020,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim parts As String() = encryptionText.Split(separator)
 
-      Dim result As EncryptionParts = New EncryptionParts()
+      Dim result As New EncryptionParts()
 
       result.formatId(0) = formatId
 
@@ -1148,11 +1149,11 @@ Public Class SplitKeyEncryption : Implements IDisposable
                                                        subjectBytes As Byte()) As Byte()
       Dim result As Byte()
 
-      Using byteStream As MemoryStream = New MemoryStream()
+      Using byteStream As New MemoryStream()
          Dim hmacKeyBytes As Byte() = hmacKey.GetData()
 
          Using hmac As New HMACSHA256(hmacKeyBytes)
-            Using hmacStream As CryptoStream = New CryptoStream(byteStream, hmac, CryptoStreamMode.Write)
+            Using hmacStream As New CryptoStream(byteStream, hmac, CryptoStreamMode.Write)
                ' 1. Hash base key
                Dim baseKeyBytes As Byte() = baseKey.GetData()
                hmacStream.Write(baseKeyBytes, 0, baseKey.Length)

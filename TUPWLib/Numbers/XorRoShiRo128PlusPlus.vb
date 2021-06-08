@@ -119,7 +119,7 @@ Public Class XorRoShiRo128PlusPlus : Inherits SimplePseudoRandomNumberGenerator
    ''' </summary>
    ''' <param name="seed"></param>
    Private Sub InitializeState(seed As Long)
-      Dim sm64 As SplitMix64 = New SplitMix64(seed)
+      Dim sm64 As New SplitMix64(seed)
 
       m_State0 = sm64.GetLong()
       m_State1 = sm64.GetLong()

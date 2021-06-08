@@ -133,7 +133,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Crypto\ShuffledByteArrayTest.vb" />
     <Compile Include="Numbers\PackedUnsignedIntegerTest.vb" />
     <Compile Include="Numbers\SplitMix64Test.vb" />
     <Compile Include="Numbers\XoRoShiRo128PlusPlusTest.vb" />

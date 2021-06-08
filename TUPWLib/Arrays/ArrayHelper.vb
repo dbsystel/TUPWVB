@@ -411,7 +411,9 @@ Public NotInheritable Class ArrayHelper
       Dim xorSum As SByte = ZERO_SUM
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -451,7 +453,9 @@ Public NotInheritable Class ArrayHelper
       Dim xorSum As Byte = ZERO_SUM
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -491,7 +495,9 @@ Public NotInheritable Class ArrayHelper
          compareLength = a2.Length
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -531,7 +537,9 @@ Public NotInheritable Class ArrayHelper
       Dim xorSum As UShort = ZERO_SUM
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -571,7 +579,9 @@ Public NotInheritable Class ArrayHelper
       Dim xorSum As Integer = ZERO_SUM
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -611,7 +621,9 @@ Public NotInheritable Class ArrayHelper
          compareLength = a2.Length
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -651,7 +663,9 @@ Public NotInheritable Class ArrayHelper
       Dim xorSum As Long = ZERO_SUM
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '
@@ -691,7 +705,9 @@ Public NotInheritable Class ArrayHelper
       Dim xorSum As ULong = ZERO_SUM
 
       For i As Integer = 0 To compareLength - 1
+#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          xorSum = xorSum Or (a1(i) Xor a2(i))
+#Enable Warning S2437 ' Silly bit operations should not be performed
       Next
 
       '

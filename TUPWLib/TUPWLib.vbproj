@@ -99,10 +99,10 @@
     <Compile Include="Crypto\CounterModeCryptoTransform.vb" />
     <Compile Include="Crypto\DataIntegrityException.vb" />
     <Compile Include="Crypto\FileAndKeyEncryption.vb" />
+    <Compile Include="Crypto\MaskedIndex.vb" />
     <Compile Include="Crypto\ProtectedByteArray.vb" />
     <Compile Include="Crypto\RandomPadding.vb" />
     <Compile Include="Crypto\SecurePseudoRandomNumberGenerator.vb" />
-    <Compile Include="Crypto\ShuffledByteArray.vb" />
     <Compile Include="Crypto\SplitKeyEncryption.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="Numbers\BitManipulationHelper.vb" />
