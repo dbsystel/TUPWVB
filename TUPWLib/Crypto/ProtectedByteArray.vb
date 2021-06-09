@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 3.0.0
+' Version: 3.0.1
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
@@ -30,6 +30,7 @@
 '    2020-12-14: V2.0.2: Corrected some comments.
 '    2020-12-16: V2.0.3: Made usage of SyncLock for disposal consistent.
 '    2021-06-08: V3.0.0: Byte array is protected by an index dependent masker now. No more need for an obfuscation array.
+'    2021-06-09: V3.0.1: Fixed wrong hash code calculation when only part of a source array was protected.
 '
 
 ''' <summary>
@@ -120,19 +121,12 @@ Public Class ProtectedByteArray : Implements IDisposable
    '******************************************************************
 
    ''' <summary>
-   ''' Constructor for the protected byte array with a source array, an offset and a count.
+   ''' Constructor for the protected byte array with a source array.
    ''' </summary>
    ''' <param name="sourceArray">Source byte array</param>
-   ''' <param name="offset">Offset in the source to get data from.</param>
-   ''' <param name="count">Number of bytes to copy from the source array.</param>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="sourceArray"/> is <c>Nothing</c>.</exception>
-   ''' <exception cref="ArgumentException">Thrown if <paramref name="offset"/> is less than 0 or larger than the upper bound
-   ''' of <paramref name="sourceArray"/> or <paramref name="count"/> is less than 0 or <paramref name="offset"/> plus 
-   ''' <paramref name="count"/> is too large to fit in <paramref name="sourceArray"/>.</exception>
-   Public Sub New(sourceArray As Byte(), offset As Integer, count As Integer)
-      RequireNonNull(sourceArray, NameOf(sourceArray))
-
-      InitializeInstance(sourceArray, offset, count)
+   Public Sub New(sourceArray As Byte())
+      Me.New(sourceArray, 0)
    End Sub
 
    ''' <summary>
@@ -150,12 +144,19 @@ Public Class ProtectedByteArray : Implements IDisposable
    End Sub
 
    ''' <summary>
-   ''' Constructor for the protected byte array with a source array.
+   ''' Constructor for the protected byte array with a source array, an offset and a count.
    ''' </summary>
    ''' <param name="sourceArray">Source byte array</param>
+   ''' <param name="offset">Offset in the source to get data from.</param>
+   ''' <param name="count">Number of bytes to copy from the source array.</param>
    ''' <exception cref="ArgumentNullException">Thrown if <paramref name="sourceArray"/> is <c>Nothing</c>.</exception>
-   Public Sub New(sourceArray As Byte())
-      Me.New(sourceArray, 0)
+   ''' <exception cref="ArgumentException">Thrown if <paramref name="offset"/> is less than 0 or larger than the upper bound
+   ''' of <paramref name="sourceArray"/> or <paramref name="count"/> is less than 0 or <paramref name="offset"/> plus 
+   ''' <paramref name="count"/> is too large to fit in <paramref name="sourceArray"/>.</exception>
+   Public Sub New(sourceArray As Byte(), offset As Integer, count As Integer)
+      RequireNonNull(sourceArray, NameOf(sourceArray))
+
+      InitializeInstance(sourceArray, offset, count)
    End Sub
 #End Region
 
@@ -225,13 +226,8 @@ Public Class ProtectedByteArray : Implements IDisposable
    Public Overrides Function GetHashCode() As Integer
       CheckState()
 
-      If m_HasChanged Then
-         Dim content As Byte() = GetValues()
-
-         CalculateHashCode(content)
-
-         ArrayHelper.Clear(content)
-      End If
+      If m_HasChanged Then _
+         CalculateHashCode()
 
       Return m_HashCode
    End Function
@@ -421,11 +417,11 @@ Public Class ProtectedByteArray : Implements IDisposable
    Private Sub InitializeInstance(sourceArray As Byte(), offset As Integer, count As Integer)
       CheckOffsetAndLength(sourceArray, offset, count)
 
-      CalculateHashCode(sourceArray)
-
       InitializeDataStructures(count)
 
       SetValues(sourceArray, offset, count)
+
+      CalculateHashCode()
    End Sub
 
    ''' <summary>
@@ -545,7 +541,7 @@ Public Class ProtectedByteArray : Implements IDisposable
    Private Function GetValues() As Byte()
       Dim result As Byte()
 
-      result = New Byte(0 To Length - 1) {}
+      result = New Byte(0 To GetRealLength() - 1) {}
 
       For i As Integer = 0 To result.Length - 1
          result(i) = m_IndexMasker.GetByteMask(i) Xor m_ByteArray(GetArrayIndex(i))
@@ -557,13 +553,16 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' <summary>
    ''' Calculates the hash code of the data.
    ''' </summary>
-   ''' <param name="content">Data to calculate the hash code for.</param>
-   Private Sub CalculateHashCode(content As Byte())
+   Private Sub CalculateHashCode()
+      Dim content As Byte() = GetValues()
+
       Dim aHasher As New SimpleHasher(CLASS_HASH_SEED_1, CLASS_HASH_SEED_2)
 
       For i As Integer = 0 To content.Length - 1
          aHasher.UpdateHash(content(i))
       Next
+
+      ArrayHelper.Clear(content)
 
       m_HashCode = aHasher.GetHashValue()
 
