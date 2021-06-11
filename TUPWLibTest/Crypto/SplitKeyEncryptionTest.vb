@@ -145,7 +145,7 @@ Imports DB.BCM.TUPW
       '
       ' Create a deterministic HMAC key from a pseudo-random number generator with a fixed key
       '
-      Dim xs128 As XorRoShiRo128PlusPlus = New XorRoShiRo128PlusPlus(&HEBE770CC82F12283L)
+      Dim xs128 As New XorRoShiRo128PlusPlus(&HEBE770CC82F12283L)
 
       For i As Integer = 0 To COMPUTED_HMAC_KEY.Length - 1
          COMPUTED_HMAC_KEY(i) = xs128.GetByte()

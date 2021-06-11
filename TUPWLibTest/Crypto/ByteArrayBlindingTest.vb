@@ -37,7 +37,7 @@ Imports DB.BCM.TUPW
    ''' Test cases for ByteArrayBlinding.
    ''' </summary>
    <TestMethod()> Public Sub TestBlinding()
-      Dim rng As Random = New Random()
+      Dim rng As New Random()
 
       Dim data0 As Byte() = Array.Empty(Of Byte)()
 
