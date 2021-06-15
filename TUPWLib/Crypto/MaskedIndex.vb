@@ -18,10 +18,11 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 1.0.1
 '
 ' Change history:
 '    2020-05-28: V1.0.0: Created.
+'    2020-06-15: V1.0.1: Clear key bytes.
 '
 
 Imports System.Security.Cryptography
@@ -116,6 +117,8 @@ Public Class MaskedIndex : Implements IDisposable
       }
          m_Encryptor = cipher.CreateEncryptor()
       End Using
+
+      ArrayHelper.Clear(key)
    End Sub
 
    ''' <summary>

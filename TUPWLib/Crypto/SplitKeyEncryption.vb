@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.1.0
+' Version: 2.1.1
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -40,6 +40,7 @@
 '    2021-05-11: V2.0.5: Clearer structure of getting the encryption parts from string.
 '    2021-05-11: V2.0.6: Corrected exception for Base32Encoding.
 '    2021-06-08: V2.1.0: Use ProtectedByteArray with index masking.
+'    2021-06-15: V2.1.1: Clear key in MaskedIndex.
 '
 
 Imports System.IO
