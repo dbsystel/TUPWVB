@@ -100,8 +100,8 @@ Imports DB.BCM.TUPW
 
          SecurePseudoRandomNumberGenerator.GetBytes(data1)
 
-         For i As Short = 1 To 256
-            minimumLength = SecurePseudoRandomNumberGenerator.GetInteger(65)
+         For i As Short = 1 To 500
+            minimumLength = SecurePseudoRandomNumberGenerator.GetInteger(257)
 
             blindedData = ByteArrayBlinding.BuildBlindedByteArray(data1, minimumLength)
             unblindedData = ByteArrayBlinding.UnBlindByteArray(blindedData)
