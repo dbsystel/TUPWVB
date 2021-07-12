@@ -18,11 +18,12 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.1
+' Version: 1.0.2
 '
 ' Change history:
 '    2020-04-27: V1.0.0: Created.
 '    2020-10-23: V1.0.1: Removed stray comment.
+'    2021-07-12: V1.0.2: Removed unnecessary if statements.
 '
 
 ''' <summary>
@@ -136,22 +137,18 @@ Public NotInheritable Class ByteArrayBlinding
       If sourceBytes.Length > LENGTHS_LENGTH Then
          Dim packedNumberLength As Integer = PackedUnsignedInteger.GetExpectedLength(sourceBytes, INDEX_SOURCE_PACKED_LENGTH)
 
-         If (sourceBytes(INDEX_SOURCE_PREFIX_LENGTH) >= 0) Then
-            ' No. of bytes to skip is the blinding prefix length plus the two length bytes plus the source length
-            Dim prefixBlindingLength As Integer = LENGTHS_LENGTH + sourceBytes(INDEX_SOURCE_PREFIX_LENGTH) + packedNumberLength
+         ' No. of bytes to skip is the blinding prefix length plus the two length bytes plus the source length
+         Dim prefixBlindingLength As Integer = LENGTHS_LENGTH + sourceBytes(INDEX_SOURCE_PREFIX_LENGTH) + packedNumberLength
 
-            If sourceBytes(INDEX_SOURCE_POSTFIX_LENGTH) >= 0 Then
-               Dim postfixBlindingLength As Integer = sourceBytes(INDEX_SOURCE_POSTFIX_LENGTH)
+         Dim postfixBlindingLength As Integer = sourceBytes(INDEX_SOURCE_POSTFIX_LENGTH)
 
-               Dim totalBlindingsLength As Integer = prefixBlindingLength + postfixBlindingLength
-               Dim dataLength As Integer = PackedUnsignedInteger.ToInteger(sourceBytes, INDEX_SOURCE_PACKED_LENGTH)
+         Dim totalBlindingsLength As Integer = prefixBlindingLength + postfixBlindingLength
+         Dim dataLength As Integer = PackedUnsignedInteger.ToInteger(sourceBytes, INDEX_SOURCE_PACKED_LENGTH)
 
-               ' The largest number in the following addition can only be just over 1,073,741,823
-               ' This can never overflow into negative values
-               If (totalBlindingsLength + dataLength) <= sourceBytes.Length Then _
-                  Return ArrayHelper.CopyOf(sourceBytes, prefixBlindingLength, dataLength)
-            End If
-         End If
+         ' The largest number in the following addition can only be just over 1,073,741,823
+         ' This can never overflow into negative values
+         If (totalBlindingsLength + dataLength) <= sourceBytes.Length Then _
+            Return ArrayHelper.CopyOf(sourceBytes, prefixBlindingLength, dataLength)
       End If
 
       Throw New ArgumentException(ERROR_MESSAGE_INVALID_ARRAY)

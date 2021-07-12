@@ -89,6 +89,7 @@ Public Class MaskedIndex : Implements IDisposable
    Public Function GetByteMask(forIndex As Integer) As Byte
       GetMaskBuffer(forIndex)
 
+      ' No need for "Math.Abs" as "And 15" removes the sign
       Dim result As Byte = m_MaskBuffer((13 * (forIndex And 15) + 5) And 15)
 
       ArrayHelper.Clear(m_MaskBuffer)
