@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.2
+' Version: 1.1.0
 '
 ' Change history:
 '    2020-04-27: V1.0.0: Created.
 '    2020-10-23: V1.0.1: Removed stray comment.
 '    2021-07-12: V1.0.2: Removed unnecessary if statements.
+'    2021-07-13: V1.1.0: Simplified blinding.
 '
 
 ''' <summary>
@@ -96,29 +97,42 @@ Public NotInheritable Class ByteArrayBlinding
 
       CheckMinimumLength(minimumLength)
 
-      Dim packedSourceLength As Byte() = PackedUnsignedInteger.FromInteger(sourceBytes.Length)
+      Dim sourceLength As Integer = sourceBytes.Length
 
-      Dim blindingLength As Integer() = GetBalancedBlindingLengths(packedSourceLength.Length, sourceBytes.Length, minimumLength)
+      Dim packedSourceLength As Byte() = PackedUnsignedInteger.FromInteger(sourceLength)
+      Dim packedSourceLengthLength As Integer = packedSourceLength.Length
 
-      Dim prefixBlinding As Byte() = CreateBlinding(blindingLength(INDEX_LENGTHS_PREFIX_LENGTH))
-      Dim postfixBlinding As Byte() = CreateBlinding(blindingLength(INDEX_LENGTHS_POSTFIX_LENGTH))
+      Dim blindingLength As Integer() = GetBalancedBlindingLengths(packedSourceLength.Length, sourceLength, minimumLength)
 
-      Dim resultLength As Integer = LENGTHS_LENGTH + packedSourceLength.Length + prefixBlinding.Length + sourceBytes.Length + postfixBlinding.Length
+      Dim prefixLength As Integer = blindingLength(INDEX_LENGTHS_PREFIX_LENGTH)
+      Dim postfixLength As Integer = blindingLength(INDEX_LENGTHS_POSTFIX_LENGTH)
 
+      Dim resultLength As Integer = LENGTHS_LENGTH + packedSourceLengthLength + prefixLength + sourceLength + postfixLength
       Dim result As Byte() = New Byte(0 To resultLength - 1) {}
 
-      result(0) = CByte(prefixBlinding.Length)
-      result(1) = CByte(postfixBlinding.Length)
+      result(0) = CByte(prefixLength)
+      result(1) = CByte(postfixLength)
 
-      Dim resultIndex As Integer = LENGTHS_LENGTH
+      Dim offset As Integer = LENGTHS_LENGTH
 
-      resultIndex += CopyByteArrayAndZapSource(packedSourceLength, result, resultIndex)
+      Array.Copy(packedSourceLength, 0, result, offset, packedSourceLengthLength)
 
-      resultIndex += CopyByteArrayAndZapSource(prefixBlinding, result, resultIndex)
+      ArrayHelper.Clear(packedSourceLength)
 
-      resultIndex += CopyByteArray(sourceBytes, result, resultIndex)
+      offset += packedSourceLengthLength
 
-      CopyByteArrayAndZapSource(postfixBlinding, result, resultIndex)
+      SecurePseudoRandomNumberGenerator.GetBytes(result, offset, prefixLength)
+
+      offset += prefixLength
+
+      prefixLength = 0
+
+      Array.Copy(sourceBytes, 0, result, offset, sourceLength)
+      offset += sourceLength
+
+      SecurePseudoRandomNumberGenerator.GetBytes(result, offset, postfixLength)
+
+      postfixLength = 0
 
       Return result
    End Function
@@ -228,44 +242,17 @@ Public NotInheritable Class ByteArrayBlinding
    End Function
 
    ''' <summary>
-   ''' Copy a byte array into another byte array.
-   ''' </summary>
-   ''' <param name="sourceBytes">Source byte array.</param>
-   ''' <param name="destinationBytes"> Destination byte array.</param>
-   ''' <param name="startToIndex">Start index in the destination byte array.</param>
-   ''' <returns>Length of the source bytes.</returns>
-   Private Shared Function CopyByteArray(sourceBytes As Byte(), destinationBytes As Byte(), startToIndex As Integer) As Integer
-      Array.Copy(sourceBytes, 0, destinationBytes, startToIndex, sourceBytes.Length)
-
-      Return sourceBytes.Length
-   End Function
-
-   ''' <summary>
-   ''' Copy a byte array into another byte array and fill the source byte array with 0s.
-   ''' </summary>
-   ''' <param name="sourceBytes">Source byte array.</param>
-   ''' <param name="destinationBytes"> Destination byte array.</param>
-   ''' <param name="startToIndex">Start index in the destination byte array.</param>
-   ''' <returns>Length of the source bytes.</returns>
-   Private Shared Function CopyByteArrayAndZapSource(sourceBytes As Byte(), destinationBytes As Byte(), startToIndex As Integer) As Integer
-      Dim result As Integer = CopyByteArray(sourceBytes, destinationBytes, startToIndex)
-
-      ArrayHelper.Clear(sourceBytes)
-
-      Return result
-   End Function
-
-   ''' <summary>
    ''' Create a blinding array.
    ''' </summary>
-   ''' <param name="blindingLength">Length of blinding array.</param>
+   ''' <param name="destination">Length of blinding array.</param>
+   ''' <param name="offset">Length of blinding array.</param>
+   ''' <param name="count">Length of blinding array.</param>
    ''' <returns>Blinding array.</returns>
-   Private Shared Function CreateBlinding(blindingLength As Integer) As Byte()
-      Dim result = New Byte(0 To blindingLength - 1) {}
+   Private Shared Function CreateBlinding(destination As Byte(), offset As Integer, count As Integer) As Integer
 
-      SecurePseudoRandomNumberGenerator.GetBytes(result)
+      SecurePseudoRandomNumberGenerator.GetBytes(destination, offset, count)
 
-      Return result
+      Return count
    End Function
 
 #Region "Exception helper methods"
