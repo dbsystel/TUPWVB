@@ -102,6 +102,8 @@ Public NotInheritable Class ByteArrayBlinding
       Dim packedSourceLength As Byte() = PackedUnsignedInteger.FromInteger(sourceLength)
       Dim packedSourceLengthLength As Integer = packedSourceLength.Length
 
+      ' The prefix and postfix blinding lengths need to be calculated.
+      ' .Net does not support multiple return values so we have to take the detour over an integer array.
       Dim blindingLength As Integer() = GetBalancedBlindingLengths(packedSourceLength.Length, sourceLength, minimumLength)
 
       Dim prefixLength As Integer = blindingLength(INDEX_LENGTHS_PREFIX_LENGTH)
@@ -117,22 +119,26 @@ Public NotInheritable Class ByteArrayBlinding
 
       Array.Copy(packedSourceLength, 0, result, offset, packedSourceLengthLength)
 
-      ArrayHelper.Clear(packedSourceLength)
+      ArrayHelper.Clear(packedSourceLength)  ' Clear the sensitive packed source length from memory
 
       offset += packedSourceLengthLength
+
+      packedSourceLengthLength = 0   ' This seemingly unnecessary assignment clears the sensitive packed source length length value from memory
 
       SecurePseudoRandomNumberGenerator.GetBytes(result, offset, prefixLength)
 
       offset += prefixLength
 
-      prefixLength = 0
+      prefixLength = 0   ' This seemingly unnecessary assignment clears the sensitive prefix length value from memory
 
       Array.Copy(sourceBytes, 0, result, offset, sourceLength)
       offset += sourceLength
 
+      sourceLength = 0   ' This seemingly unnecessary assignment clears the sensitive source length value from memory
+
       SecurePseudoRandomNumberGenerator.GetBytes(result, offset, postfixLength)
 
-      postfixLength = 0
+      postfixLength = 0   ' This seemingly unnecessary assignment clears the sensitive postfix length value from memory
 
       Return result
    End Function
