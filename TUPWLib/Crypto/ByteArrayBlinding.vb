@@ -241,20 +241,6 @@ Public NotInheritable Class ByteArrayBlinding
       Return result
    End Function
 
-   ''' <summary>
-   ''' Create a blinding array.
-   ''' </summary>
-   ''' <param name="destination">Length of blinding array.</param>
-   ''' <param name="offset">Length of blinding array.</param>
-   ''' <param name="count">Length of blinding array.</param>
-   ''' <returns>Blinding array.</returns>
-   Private Shared Function CreateBlinding(destination As Byte(), offset As Integer, count As Integer) As Integer
-
-      SecurePseudoRandomNumberGenerator.GetBytes(destination, offset, count)
-
-      Return count
-   End Function
-
 #Region "Exception helper methods"
    ''' <summary>
    ''' Check if object is null and throw an exception, if it is.
