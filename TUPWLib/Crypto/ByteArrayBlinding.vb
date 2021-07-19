@@ -123,22 +123,30 @@ Public NotInheritable Class ByteArrayBlinding
 
       offset += packedSourceLengthLength
 
+#Disable Warning IDE0059 ' Unnecessary assignment of a value
       packedSourceLengthLength = 0   ' This seemingly unnecessary assignment clears the sensitive packed source length length value from memory
+#Enable Warning IDE0059 ' Unnecessary assignment of a value
 
       SecurePseudoRandomNumberGenerator.GetBytes(result, offset, prefixLength)
 
       offset += prefixLength
 
+#Disable Warning IDE0059 ' Unnecessary assignment of a value
       prefixLength = 0   ' This seemingly unnecessary assignment clears the sensitive prefix length value from memory
+#Enable Warning IDE0059 ' Unnecessary assignment of a value
 
       Array.Copy(sourceBytes, 0, result, offset, sourceLength)
       offset += sourceLength
 
+#Disable Warning IDE0059 ' Unnecessary assignment of a value
       sourceLength = 0   ' This seemingly unnecessary assignment clears the sensitive source length value from memory
+#Enable Warning IDE0059 ' Unnecessary assignment of a value
 
       SecurePseudoRandomNumberGenerator.GetBytes(result, offset, postfixLength)
 
+#Disable Warning IDE0059 ' Unnecessary assignment of a value
       postfixLength = 0   ' This seemingly unnecessary assignment clears the sensitive postfix length value from memory
+#Enable Warning IDE0059 ' Unnecessary assignment of a value
 
       Return result
    End Function

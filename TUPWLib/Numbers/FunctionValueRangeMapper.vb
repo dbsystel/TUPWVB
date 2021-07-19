@@ -496,9 +496,7 @@ Public NotInheritable Class FunctionValueRangeMapper
       Dim mask As Byte = ONE_AS_BYTE
 
       Do While aValue >= mask
-#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          result = (result Or mask)
-#Enable Warning S2437 ' Silly bit operations should not be performed
 
          If mask = MSB_AS_BYTE Then _
             Exit Do
@@ -524,9 +522,7 @@ Public NotInheritable Class FunctionValueRangeMapper
       Dim mask As UShort = 1US
 
       Do While aValue >= mask
-#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          result = (result Or mask)
-#Enable Warning S2437 ' Silly bit operations should not be performed
 
          If mask = &H8000US Then _
             Exit Do
@@ -552,9 +548,7 @@ Public NotInheritable Class FunctionValueRangeMapper
       Dim mask As UInteger = 1UI
 
       Do While aValue >= mask
-#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          result = (result Or mask)
-#Enable Warning S2437 ' Silly bit operations should not be performed
 
          If mask = &H80000000UI Then _
             Exit Do
@@ -580,9 +574,7 @@ Public NotInheritable Class FunctionValueRangeMapper
       Dim mask As ULong = 1
 
       Do While aValue >= mask
-#Disable Warning S2437 ' Silly bit operations should not be performed: Suppress this silly warning
          result = (result Or mask)
-#Enable Warning S2437 ' Silly bit operations should not be performed
 
          If mask = &H8000000000000000UL Then _
             Exit Do

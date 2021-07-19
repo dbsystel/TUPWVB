@@ -291,9 +291,7 @@ Public NotInheritable Class Base32Encoding
             mask = charValue << (bitsRemaining - BITS_PER_CHARACTER)
             ' This is *not* a silly bit operation
             ' SonarLint is silly in that it does not consider that this is done in a loop
-#Disable Warning S2437 ' Silly bit operations should not be performed
             actByte = actByte Or mask
-#Enable Warning S2437 ' Silly bit operations should not be performed
             bitsRemaining -= BITS_PER_CHARACTER
          Else
             mask = charValue >> (BITS_PER_CHARACTER - bitsRemaining)
@@ -365,9 +363,7 @@ Public NotInheritable Class Base32Encoding
          For Each b As Byte In aByteArray
             ' This is *not* a silly bit operation
             ' SonarLint is silly in that it does not consider that this is done in a loop
-#Disable Warning S2437 ' Silly bit operations should not be performed
             actValue = actValue Or (b >> (BITS_PER_BYTE - bitsRemaining))
-#Enable Warning S2437 ' Silly bit operations should not be performed
             result(arrayIndex) = mapByteToChar(actValue)
             arrayIndex += 1
 
