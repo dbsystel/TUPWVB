@@ -18,11 +18,12 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.1
+' Version: 1.0.2
 '
 ' Change history:
 '    2020-05-12: V1.0.0: Created.
 '    2020-10-26: V1.0.1: Fixed "TestInvalidAlgorithmName" to be more understandble.
+'    2021-07-21: V1.0.2: Simplified constants instantiations.
 '
 
 Imports System.IO
@@ -39,14 +40,14 @@ Imports DB.BCM.TUPW
 #End Region
 
 #Region "Test vectors"
-   Private Shared ReadOnly NIST_800_38A_IV As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_IV As Byte() = {
       &HF0, &HF1, &HF2, &HF3,
       &HF4, &HF5, &HF6, &HF7,
       &HF8, &HF9, &HFA, &HFB,
       &HFC, &HFD, &HFE, &HFF
    }
 
-   Private Shared ReadOnly NIST_800_38A_PLAIN_TEXT As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_PLAIN_TEXT As Byte() = {
       &H6B, &HC1, &HBE, &HE2,
       &H2E, &H40, &H9F, &H96,
       &HE9, &H3D, &H7E, &H11,
@@ -65,14 +66,14 @@ Imports DB.BCM.TUPW
       &HE6, &H6C, &H37, &H10
    }
 
-   Private Shared ReadOnly NIST_800_38A_128_BIT_KEY As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_128_BIT_KEY As Byte() = {
       &H2B, &H7E, &H15, &H16,
       &H28, &HAE, &HD2, &HA6,
       &HAB, &HF7, &H15, &H88,
       &H9, &HCF, &H4F, &H3C
    }
 
-   Private Shared ReadOnly NIST_800_38A_128_BIT_CIPHER_TEXT As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_128_BIT_CIPHER_TEXT As Byte() = {
       &H87, &H4D, &H61, &H91,
       &HB6, &H20, &HE3, &H26,
       &H1B, &HEF, &H68, &H64,
@@ -91,7 +92,7 @@ Imports DB.BCM.TUPW
       &HF3, &H0, &H9C, &HEE
    }
 
-   Private Shared ReadOnly NIST_800_38A_192_BIT_KEY As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_192_BIT_KEY As Byte() = {
       &H8E, &H73, &HB0, &HF7,
       &HDA, &HE, &H64, &H52,
       &HC8, &H10, &HF3, &H2B,
@@ -100,7 +101,7 @@ Imports DB.BCM.TUPW
       &H52, &H2C, &H6B, &H7B
    }
 
-   Private Shared ReadOnly NIST_800_38A_192_BIT_CIPHER_TEXT As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_192_BIT_CIPHER_TEXT As Byte() = {
       &H1A, &HBC, &H93, &H24,
       &H17, &H52, &H1C, &HA2,
       &H4F, &H2B, &H4, &H59,
@@ -119,7 +120,7 @@ Imports DB.BCM.TUPW
       &H58, &HC6, &HB0, &H50
    }
 
-   Private Shared ReadOnly NIST_800_38A_256_BIT_KEY As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_256_BIT_KEY As Byte() = {
       &H60, &H3D, &HEB, &H10,
       &H15, &HCA, &H71, &HBE,
       &H2B, &H73, &HAE, &HF0,
@@ -130,7 +131,7 @@ Imports DB.BCM.TUPW
       &H9, &H14, &HDF, &HF4
    }
 
-   Private Shared ReadOnly NIST_800_38A_256_BIT_CIPHER_TEXT As Byte() = New Byte() {
+   Private Shared ReadOnly NIST_800_38A_256_BIT_CIPHER_TEXT As Byte() = {
       &H60, &H1E, &HC3, &H13,
       &H77, &H57, &H89, &HA5,
       &HB7, &HA7, &HF5, &H4,

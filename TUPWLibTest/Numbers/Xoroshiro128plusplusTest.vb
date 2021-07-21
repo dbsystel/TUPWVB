@@ -18,10 +18,11 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 1.0.1
 '
 ' Change history:
 '    2020-05-06: V1.0.0: Created.
+'    2021-07-21: V1.0.1: Corrected instantiation of constants.
 '
 
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
@@ -31,11 +32,11 @@ Imports DB.BCM.TUPW
    '
    ' The following numbers are taken from https://commons.apache.org/proper/commons-rng/xref-test/org/apache/commons/rng/core/source64/XoRoShiRo128PlusPlusTest.html .
    '
-   Private Shared ReadOnly XS128_SEED As Long() = New Long() {
+   Private Shared ReadOnly XS128_SEED As Long() = {
           &H12DE1BABB3C4104L, &HA5A818B8FC5AA503L
       }
 
-   Private Shared ReadOnly X128_EXPECTED_SEQUENCE As Long() = New Long() {
+   Private Shared ReadOnly X128_EXPECTED_SEQUENCE As Long() = {
           &HF61550E8874B8EAFL, &H125015FCE911E8F6L, &HFF0E6030E39AF1A4L, &HD5738FC2A502673BL,
           &HEF48CDCBEFD84325L, &HB60462C014133DA1L, &HA62C6D8B9F87CD81L, &H52FD609A347198EBL,
           &H3C717475E803BF09L, &H1B6E66B21504A677L, &H528F64243DB486F4L, &H3676015C33FBF0FAL,

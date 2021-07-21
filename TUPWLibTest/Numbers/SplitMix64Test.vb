@@ -18,10 +18,11 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.0
+' Version: 1.0.1
 '
 ' Change history:
 '    2020-05-06: V1.0.0: Created.
+'    2021-07-21: V1.0.1: Corrected visibility and instantiation of constants.
 '
 
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
@@ -31,9 +32,9 @@ Imports DB.BCM.TUPW
    '
    ' The following numbers are taken from https://commons.apache.org/proper/commons-rng/xref-test/org/apache/commons/rng/core/source64/SplitMix64Test.html .
    '
-   Public Const SM64_SEED = &H1A2B3C4D5E6F7531L
+   Private Const SM64_SEED = &H1A2B3C4D5E6F7531L
 
-   Public Shared ReadOnly SM64_EXPECTED_SEQUENCE As Long() = New Long() {
+   Private Shared ReadOnly SM64_EXPECTED_SEQUENCE As Long() = {
              &H4141302768C9E9D0L, &H64DF48C4EAB51B1AL, &H4E723B53DBD901B3L, &HEAD8394409DD6454L,
              &H3EF60E485B412A0AL, &HB2A23AEE63AECF38L, &H6CC3B8933C4FA332L, &H9C9E75E031E6FCCBL,
              &HFDDFFB161C9F30FL, &H2D1D75D4E75C12A3L, &HCDCF9D2DDE66DA2EL, &H278BA7D1D142CFECL,
