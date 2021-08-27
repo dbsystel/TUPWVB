@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.4
+' Version: 1.1.0
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
@@ -26,6 +26,7 @@
 '    2020-05-28: V1.0.2: Check for null added where necessary.
 '    2020-05-28: V1.0.3: Corrected comments.
 '    2020-10-26: V1.0.4: Added a few comments re. the use of non-short-circuit logic.
+'    2021-08-27: V1.1.0: Added SafeClear method.
 '
 
 ''' <summary>
@@ -815,6 +816,18 @@ Public NotInheritable Class ArrayHelper
          Throw New ArgumentNullException(NameOf(arrayToClear))
 
       Array.Clear(arrayToClear, 0, arrayToClear.Length)
+   End Sub
+
+   ''' <summary>
+   ''' Clear an array without the need to provide all those unnecessary parameters if it is not nothing.
+   ''' </summary>
+   ''' <remarks>
+   ''' This method ought to be part of the <see cref="Array"/> class.
+   ''' </remarks>
+   ''' <param name="arrayToClear">The array to clear.</param>
+   Public Shared Sub SafeClear(arrayToClear As Array)
+      If arrayToClear IsNot Nothing Then _
+         Array.Clear(arrayToClear, 0, arrayToClear.Length)
    End Sub
 #End Region
 

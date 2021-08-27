@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.1.1
+' Version: 2.2.0
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -41,9 +41,9 @@
 '    2021-05-11: V2.0.6: Corrected exception for Base32Encoding.
 '    2021-06-08: V2.1.0: Use ProtectedByteArray with index masking.
 '    2021-06-15: V2.1.1: Clear key in MaskedIndex.
+'    2021-08-27: V2.2.0: Remove unnecessary Streams and also do a little refactoring.
 '
 
-Imports System.IO
 Imports System.Security.Cryptography
 Imports System.Text
 
@@ -114,9 +114,9 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Shared ReadOnly PREFIX_SALT As Byte() = {84, 117}   ' i.e "Tu"
 
    ''' <summary>
-   ''' Salt postfix for key calculation.
+   ''' Salt suffix for key calculation.
    ''' </summary>
-   Private Shared ReadOnly POSTFIX_SALT As Byte() = {112, 87}  ' i.e "pW"
+   Private Shared ReadOnly SUFFIX_SALT As Byte() = {112, 87}  ' i.e "pW"
 
    ''' <summary>
    ''' Character encoding (UTF-8) for conversion between characters and bytes.
@@ -154,13 +154,13 @@ Public Class SplitKeyEncryption : Implements IDisposable
       '
       ' All data an encrypted string is comprised of.
       '
-      Public formatId As Byte()
+      Public formatId As Byte
       Public iv As Byte()
       Public encryptedData As Byte()
       Public checksum As Byte()
 
       Public Sub New()
-         formatId = New Byte() {0}
+         formatId = 0
       End Sub
 
       ''' <summary>
@@ -169,7 +169,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
       ''' <returns>Total length of all data.</returns>
       Public ReadOnly Property TotalLength() As Integer
          Get
-            Dim result As Integer = formatId.Length
+            Dim result As Integer = 1  ' Length of format id
 
             If iv IsNot Nothing Then _
                result += iv.Length
@@ -188,16 +188,13 @@ Public Class SplitKeyEncryption : Implements IDisposable
       ''' Clear all data.
       ''' </summary>
       Public Sub Zap()
-         formatId(0) = 0
+         formatId = 0
 
-         If iv IsNot Nothing Then _
-            ArrayHelper.Clear(iv)
+         ArrayHelper.SafeClear(iv)
 
-         If encryptedData IsNot Nothing Then _
-            ArrayHelper.Clear(encryptedData)
+         ArrayHelper.SafeClear(encryptedData)
 
-         If checksum IsNot Nothing Then _
-            ArrayHelper.Clear(checksum)
+         ArrayHelper.SafeClear(checksum)
       End Sub
    End Class
 #End Region
@@ -629,8 +626,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
          '
          ' Clear sensitive data
          '
-         If encryptionKey IsNot Nothing Then _
-            ArrayHelper.Clear(encryptionKey)
+         ArrayHelper.SafeClear(encryptionKey)
 
          Throw
       End Try
@@ -660,9 +656,9 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <param name="key">Key to use for encryption.</param>
    ''' <returns><see cref="EncryptionParts"/> object with all parts of the encryption of the <paramref name="sourceBytes"/>.</returns>
    Private Shared Function GetEncryptionPartsForBytesAndKey(sourceBytes As Byte(), key() As Byte) As EncryptionParts
-      Dim result As New EncryptionParts
-
-      result.formatId(0) = FORMAT_ID_MAX
+      Dim result As New EncryptionParts With {
+         .formatId = FORMAT_ID_MAX
+      }
 
       Dim paddedSourceBytes As Byte() = Nothing
 
@@ -690,8 +686,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
          End Using
 
       Catch ex As Exception
-         If paddedSourceBytes IsNot Nothing Then _
-            ArrayHelper.Clear(paddedSourceBytes)   ' Clear sensitive data
+         ArrayHelper.SafeClear(paddedSourceBytes)   ' Clear sensitive data
 
          Throw
       End Try
@@ -708,18 +703,10 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <param name="iv">The initialization vector to use for encryption.</param>
    ''' <returns>Encrypted bytes.</returns>
    Private Shared Function GetEncryptedBytes(aSymmetricCipher As SymmetricAlgorithm, sourceBytes As Byte(), key As Byte(), iv As Byte()) As Byte()
-      Dim result As Byte()
+      Dim result As Byte() = New Byte(0 To sourceBytes.Length - 1) {}
 
       Using symmetricEncryptor As ICryptoTransform = aSymmetricCipher.CreateEncryptor(key, iv)
-         Using resultStream As New MemoryStream()
-            Using encryptionStream As New CryptoStream(resultStream, symmetricEncryptor, CryptoStreamMode.Write)
-               encryptionStream.Write(sourceBytes, 0, sourceBytes.Length)
-
-               encryptionStream.FlushFinalBlock()
-            End Using
-
-            result = resultStream.ToArray()
-         End Using
+         symmetricEncryptor.TransformBlock(sourceBytes, 0, sourceBytes.Length, result, 0)
       End Using
 
       Return result
@@ -749,8 +736,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
          ArrayHelper.Clear(blindedSourceBytes)  ' Clear sensitive data
 
       Catch ex As Exception
-         If blindedSourceBytes IsNot Nothing Then _
-            ArrayHelper.Clear(blindedSourceBytes)  ' Clear sensitive data
+         ArrayHelper.SafeClear(blindedSourceBytes)  ' Clear sensitive data
 
          Throw   ' Rethrow exception
       End Try
@@ -865,7 +851,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Dim result As Byte()
 
       ' "ep.formatId" has been checked in "decryptData" and does not need to be checked here
-      Dim cipherModeForFormatId As Byte = CIPHERMODES_FOR_FORMAT_ID(ep.formatId(0))
+      Dim cipherModeForFormatId As Byte = CIPHERMODES_FOR_FORMAT_ID(ep.formatId)
 
       Dim decryptionKey As Byte() = Nothing
 
@@ -885,7 +871,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
          ArrayHelper.Clear(decryptionKey)   ' Clear sensitive data
 
-         result = GetUnpaddedDataBytes(ep.formatId(0), paddedDecryptedDataBytes)
+         result = GetUnpaddedDataBytes(ep.formatId, paddedDecryptedDataBytes)
 
          ArrayHelper.Clear(paddedDecryptedDataBytes)   ' Clear sensitive data
 
@@ -893,11 +879,9 @@ Public Class SplitKeyEncryption : Implements IDisposable
          '
          ' Clear sensitive data
          '
-         If decryptionKey IsNot Nothing Then _
-            ArrayHelper.Clear(decryptionKey)
+         ArrayHelper.SafeClear(decryptionKey)
 
-         If paddedDecryptedDataBytes IsNot Nothing Then _
-            ArrayHelper.Clear(paddedDecryptedDataBytes)
+         ArrayHelper.SafeClear(paddedDecryptedDataBytes)
 
          Throw   ' Rethrow exception
       End Try
@@ -940,17 +924,9 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <returns>Decrypted data.</returns>
    ''' <exception cref="CryptographicException">Thrown if the key is corrupt.</exception>
    Private Shared Function DecryptDataWithCryptoTransform(ct As ICryptoTransform, encryptedData As Byte()) As Byte()
-      Dim result As Byte()
+      Dim result As Byte() = New Byte(0 To encryptedData.Length - 1) {}
 
-      Using resultStream As New MemoryStream()
-         Using encryptionStream As New CryptoStream(resultStream, ct, CryptoStreamMode.Write)
-            encryptionStream.Write(encryptedData, 0, encryptedData.Length)
-
-            encryptionStream.FlushFinalBlock()
-         End Using
-
-         result = resultStream.ToArray()
-      End Using
+      ct.TransformBlock(encryptedData, 0, encryptedData.Length, result, 0)
 
       Return result
    End Function
@@ -965,7 +941,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Shared Function MakeEncryptionStringFromEncryptionParts(ep As EncryptionParts) As String
       Dim sb As New StringBuilder(CalculateStringBuilderCapacityForEncryptionParts(ep))
 
-      sb.Append(ep.formatId(0))
+      sb.Append(ep.formatId)
       sb.Append(SAFE_PARTS_SEPARATOR)
       sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(ep.iv))
       sb.Append(SAFE_PARTS_SEPARATOR)
@@ -1011,19 +987,13 @@ Public Class SplitKeyEncryption : Implements IDisposable
       If (formatId < FORMAT_ID_MIN) OrElse (formatId > FORMAT_ID_MAX) Then _
          Throw New ArgumentException("Unknown format id", NameOf(encryptionText))
 
-      Dim separator As Char
-
-      If formatId >= FORMAT_ID_USE_SAFE_ENCODING Then
-         separator = SAFE_PARTS_SEPARATOR
-      Else
-         separator = OLD_PARTS_SEPARATOR
-      End If
+      Dim separator As Char = GetSeparatorForFormatId(formatId)
 
       Dim parts As String() = encryptionText.Split(separator)
 
-      Dim result As New EncryptionParts()
-
-      result.formatId(0) = formatId
+      Dim result As New EncryptionParts With {
+         .formatId = formatId
+      }
 
       If parts.Length = 4 Then
          If formatId >= FORMAT_ID_USE_SAFE_ENCODING Then
@@ -1037,6 +1007,23 @@ Public Class SplitKeyEncryption : Implements IDisposable
          End If
       Else
          Throw New ArgumentException($"Number of '{separator}' separated parts in encrypted text is not 4")
+      End If
+
+      Return result
+   End Function
+
+   ''' <summary>
+   ''' Gets the separator character for the format id.
+   ''' </summary>
+   ''' <param name="formatId">Format id.</param>
+   ''' <returns>Separator character for format id.</returns>
+   Private Shared Function GetSeparatorForFormatId(formatId As Byte) As Char
+      Dim result As Char
+
+      If formatId >= FORMAT_ID_USE_SAFE_ENCODING Then
+         result = SAFE_PARTS_SEPARATOR
+      Else
+         result = OLD_PARTS_SEPARATOR
       End If
 
       Return result
@@ -1057,31 +1044,38 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim hmac As HMACSHA256 = Nothing
 
+      Dim formatIdArray As Byte() = {0}  ' The format id needs to be converted to an array for the TransformBlock method
+
       '
       ' There is no "finally" statement as this will only be executed if there is a wrapping "try-catch" block.
       ' To ensure that the array is cleared the corresponding statements are duplicated in the "try"
       ' and the "catch" part.
       '
       Try
-         hmacKey = GetHMACKeyForFormat(ep.formatId(0), subjectBytes)
+         hmacKey = GetHMACKeyForFormat(ep.formatId, subjectBytes)
 
          hmac = New HMACSHA256(hmacKey)
 
-         hmac.TransformBlock(ep.formatId, 0, ep.formatId.Length, ep.formatId, 0)
+         formatIdArray(0) = ep.formatId
+
+         hmac.TransformBlock(formatIdArray, 0, formatIdArray.Length, formatIdArray, 0)
          hmac.TransformBlock(ep.iv, 0, ep.iv.Length, ep.iv, 0)
          hmac.TransformFinalBlock(ep.encryptedData, 0, ep.encryptedData.Length)
 
          result = hmac.Hash
 
          ' Clear sensitive data
+         formatIdArray(0) = 0
+
          ArrayHelper.Clear(hmacKey)
 
          hmac.Clear()
 
       Catch ex As Exception
          ' Clear sensitive data
-         If hmacKey IsNot Nothing Then _
-            ArrayHelper.Clear(hmacKey)
+         formatIdArray(0) = 0
+
+         ArrayHelper.SafeClear(hmacKey)
 
          If hmac IsNot Nothing Then _
             hmac.Clear()
@@ -1149,30 +1143,34 @@ Public Class SplitKeyEncryption : Implements IDisposable
                                                        baseKey As ProtectedByteArray,
                                                        subjectBytes As Byte()) As Byte()
       Dim result As Byte()
+      Dim hmacKeyBytes As Byte() = Nothing
+      Dim baseKeyBytes As Byte() = Nothing
 
-      Using byteStream As New MemoryStream()
-         Dim hmacKeyBytes As Byte() = hmacKey.GetData()
+      Try
+         hmacKeyBytes = hmacKey.GetData()
 
          Using hmac As New HMACSHA256(hmacKeyBytes)
-            Using hmacStream As New CryptoStream(byteStream, hmac, CryptoStreamMode.Write)
-               ' 1. Hash base key
-               Dim baseKeyBytes As Byte() = baseKey.GetData()
-               hmacStream.Write(baseKeyBytes, 0, baseKey.Length)
-               ArrayHelper.Clear(baseKeyBytes)
+            baseKeyBytes = baseKey.GetData()
 
-               ' 2. Hash subject bytes fenced by the salt bytes
-               hmacStream.Write(PREFIX_SALT, 0, PREFIX_SALT.Length)
-               hmacStream.Write(subjectBytes, 0, subjectBytes.Length)
-               hmacStream.Write(POSTFIX_SALT, 0, POSTFIX_SALT.Length)
-
-               hmacStream.FlushFinalBlock()
-            End Using
+            hmac.TransformBlock(baseKeyBytes, 0, baseKeyBytes.Length, baseKeyBytes, 0)
+            hmac.TransformBlock(PREFIX_SALT, 0, PREFIX_SALT.Length, PREFIX_SALT, 0)
+            hmac.TransformBlock(subjectBytes, 0, subjectBytes.Length, subjectBytes, 0)
+            hmac.TransformFinalBlock(SUFFIX_SALT, 0, SUFFIX_SALT.Length)
 
             result = hmac.Hash
          End Using
 
-         ArrayHelper.Clear(hmacKeyBytes)
-      End Using
+         ' Clear sensitive data
+         ArrayHelper.SafeClear(baseKeyBytes)
+         ArrayHelper.SafeClear(hmacKeyBytes)
+
+      Catch ex As Exception
+         ' Clear sensitive data
+         ArrayHelper.SafeClear(baseKeyBytes)
+         ArrayHelper.SafeClear(hmacKeyBytes)
+
+         Throw  ' Rethrow exception
+      End Try
 
       Return result
    End Function
