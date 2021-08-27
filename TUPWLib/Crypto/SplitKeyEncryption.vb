@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.2.0
+' Version: 2.2.1
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -42,6 +42,7 @@
 '    2021-06-08: V2.1.0: Use ProtectedByteArray with index masking.
 '    2021-06-15: V2.1.1: Clear key in MaskedIndex.
 '    2021-08-27: V2.2.0: Remove unnecessary Streams and also do a little refactoring.
+'    2021-08-27: V2.2.1: Replace private class with structure.
 '
 
 Imports System.Security.Cryptography
@@ -146,11 +147,11 @@ Public Class SplitKeyEncryption : Implements IDisposable
 #End Region
 #End Region
 
-#Region "Private class"
+#Region "Private structure"
    ''' <summary>
-   ''' Class to hold all the encryption information and handle them securely.
+   ''' Structure to hold all the encryption information and handle them securely.
    ''' </summary>
-   Private Class EncryptionParts
+   Private Structure EncryptionParts
       '
       ' All data an encrypted string is comprised of.
       '
@@ -158,10 +159,6 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Public iv As Byte()
       Public encryptedData As Byte()
       Public checksum As Byte()
-
-      Public Sub New()
-         formatId = 0
-      End Sub
 
       ''' <summary>
       ''' Get length of all data in this instance.
@@ -190,13 +187,22 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Public Sub Zap()
          formatId = 0
 
-         ArrayHelper.SafeClear(iv)
+         If iv IsNot Nothing Then
+            ArrayHelper.Clear(iv)
+            iv = Nothing
+         End If
 
-         ArrayHelper.SafeClear(encryptedData)
+         If encryptedData IsNot Nothing Then
+            ArrayHelper.Clear(encryptedData)
+            encryptedData = Nothing
+         End If
 
-         ArrayHelper.SafeClear(checksum)
+         If checksum IsNot Nothing Then
+            ArrayHelper.Clear(checksum)
+            checksum = Nothing
+         End If
       End Sub
-   End Class
+   End Structure
 #End Region
 
 #Region "Instance variables"
@@ -574,22 +580,18 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim result As String
 
-      Dim rawEncryptionData As EncryptionParts = Nothing  ' This needs to be declared here so it is accessible in the catch block
+      Dim encryptionParts As New EncryptionParts  ' This needs to be declared here so it is accessible in the catch block
       Dim subjectBytes As Byte() = CHARACTER_ENCODING_FOR_DATA.GetBytes(subject)
 
       Try
-         rawEncryptionData = RawDataEncryption(sourceBytes, subjectBytes)
+         RawDataEncryption(sourceBytes, subjectBytes, encryptionParts)
 
-         result = MakeEncryptionStringFromEncryptionParts(rawEncryptionData)
+         result = MakeEncryptionStringFromEncryptionParts(encryptionParts)
 
-         rawEncryptionData.Zap()
-
-         '      Catch ex As Exception
-         '        Throw New InvalidCryptoParameterException("Invalid cryptographic parameter: " + ex.ToString(), ex)
+         encryptionParts.Zap()
 
       Catch ex As Exception
-         If rawEncryptionData IsNot Nothing Then _
-            rawEncryptionData.Zap()
+         encryptionParts.Zap()
 
          Throw   ' Rethrow exception
       End Try
@@ -602,9 +604,8 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' </summary>
    ''' <param name="sourceBytes">Source bytes to encrypt.</param>
    ''' <param name="subjectBytes">Subject bytes to use for encryption.</param>
-   ''' <returns>An <see cref="EncryptionParts"/> object with the encrypted data.</returns>
-   Private Function RawDataEncryption(sourceBytes As Byte(), subjectBytes As Byte()) As EncryptionParts
-      Dim result As EncryptionParts
+   ''' <param name="encryptionParts">Encryption parts to set.</param>
+   Private Sub RawDataEncryption(sourceBytes As Byte(), subjectBytes As Byte(), ByRef encryptionParts As EncryptionParts)
       Dim encryptionKey As Byte() = Nothing
 
       '
@@ -615,26 +616,20 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Try
          encryptionKey = GetKeyForEncryptionDependingOnSubject(subjectBytes)
 
-         result = GetEncryptionPartsForBytesAndKey(sourceBytes, encryptionKey)
+         GetEncryptionPartsForBytesAndKey(sourceBytes, encryptionKey, encryptionParts)
 
-         '
          ' Clear sensitive data
-         '
          ArrayHelper.Clear(encryptionKey)
 
       Catch ex As Exception
-         '
          ' Clear sensitive data
-         '
          ArrayHelper.SafeClear(encryptionKey)
 
          Throw
       End Try
 
-      result.checksum = GetChecksumForEncryptionParts(result, subjectBytes)
-
-      Return result
-   End Function
+      encryptionParts.checksum = GetChecksumForEncryptionParts(subjectBytes, encryptionParts)
+   End Sub
 
    ''' <summary>
    ''' Get a secure initialization vector.
@@ -654,11 +649,9 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' </summary>
    ''' <param name="sourceBytes">Source bytes to encrypt.</param>
    ''' <param name="key">Key to use for encryption.</param>
-   ''' <returns><see cref="EncryptionParts"/> object with all parts of the encryption of the <paramref name="sourceBytes"/>.</returns>
-   Private Shared Function GetEncryptionPartsForBytesAndKey(sourceBytes As Byte(), key() As Byte) As EncryptionParts
-      Dim result As New EncryptionParts With {
-         .formatId = FORMAT_ID_MAX
-      }
+   ''' <param name="encryptionParts">Encryption parts to set.</param>
+   Private Shared Sub GetEncryptionPartsForBytesAndKey(sourceBytes As Byte(), key() As Byte, ByRef encryptionParts As EncryptionParts)
+      encryptionParts.formatId = FORMAT_ID_MAX
 
       Dim paddedSourceBytes As Byte() = Nothing
 
@@ -675,12 +668,12 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
             Dim blockSizeInBytes As Integer = aesCipher.BlockSize >> 3
 
-            result.iv = GetInitializationVector(blockSizeInBytes)
+            encryptionParts.iv = GetInitializationVector(blockSizeInBytes)
 
             paddedSourceBytes = PadSourceBytes(sourceBytes, blockSizeInBytes)
 
             ' Encrypt the source string with the iv
-            result.encryptedData = GetEncryptedBytes(aesCipher, paddedSourceBytes, key, result.iv)
+            encryptionParts.encryptedData = GetEncryptedBytes(aesCipher, paddedSourceBytes, key, encryptionParts.iv)
 
             ArrayHelper.Clear(paddedSourceBytes)   ' Clear sensitive data
          End Using
@@ -690,9 +683,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
          Throw
       End Try
-
-      Return result
-   End Function
+   End Sub
 
    ''' <summary>
    ''' Encrypt a byte array under a cipher, a key and an iv.
@@ -733,10 +724,12 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
          result = RandomPadding.AddPadding(blindedSourceBytes, blockSizeInBytes)
 
-         ArrayHelper.Clear(blindedSourceBytes)  ' Clear sensitive data
+         ' Clear sensitive data
+         ArrayHelper.Clear(blindedSourceBytes)
 
       Catch ex As Exception
-         ArrayHelper.SafeClear(blindedSourceBytes)  ' Clear sensitive data
+         ' Clear sensitive data
+         ArrayHelper.SafeClear(blindedSourceBytes)
 
          Throw   ' Rethrow exception
       End Try
@@ -782,28 +775,27 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim result As Byte()
 
-      Dim ep As EncryptionParts = Nothing
+      Dim encryptionParts As New EncryptionParts
 
       Try
-         ep = GetPartsFromPrintableString(stringToDecrypt)
+         GetPartsFromPrintableString(stringToDecrypt, encryptionParts)
 
-         CheckChecksumForEncryptionParts(ep, subjectBytes)
+         CheckChecksumForEncryptionParts(subjectBytes, encryptionParts)
 
-         result = RawDataDecryption(ep, subjectBytes)
+         result = RawDataDecryption(subjectBytes, encryptionParts)
 
-         ep.Zap()
+         ' Clear sensitive data
+         encryptionParts.Zap()
 
       Catch ex As FormatException
-         ' Ensure sensitive data are cleared
-         If ep IsNot Nothing Then _
-            ep.Zap()
+         ' Clear sensitive data
+         encryptionParts.Zap()
 
          Throw New ArgumentException("Invalid Base32/Base64 encoding", ex)
 
       Catch ex As Exception
-         ' Ensure sensitive data are cleared
-         If ep IsNot Nothing Then _
-            ep.Zap()
+         ' Clear sensitive data
+         encryptionParts.Zap()
 
          Throw   ' Rethrow exception
       End Try
@@ -814,13 +806,13 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Check the checksum of the encrypted parts that have been read.
    ''' </summary>
-   ''' <param name="ep">Encryption parts to be checked.</param>
    ''' <param name="subjectBytes">Subject bytes to use for HMAC key calculation.</param>
+   ''' <param name="encryptionParts">Encryption parts to be checked.</param>
    ''' <exception cref="DataIntegrityException">Thrown if the calculated checksum does not match the checksum in the data.</exception>
-   Private Sub CheckChecksumForEncryptionParts(ep As EncryptionParts, subjectBytes As Byte())
-      Dim calculatedChecksum As Byte() = GetChecksumForEncryptionParts(ep, subjectBytes)
+   Private Sub CheckChecksumForEncryptionParts(subjectBytes As Byte(), ByRef encryptionParts As EncryptionParts)
+      Dim calculatedChecksum As Byte() = GetChecksumForEncryptionParts(subjectBytes, encryptionParts)
 
-      If Not ArrayHelper.SecureAreEqual(calculatedChecksum, ep.checksum) Then _
+      If Not ArrayHelper.SecureAreEqual(calculatedChecksum, encryptionParts.checksum) Then _
          Throw New DataIntegrityException("Checksum does not match data")
    End Sub
 
@@ -842,16 +834,16 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Decrypt data that have been created by the corresponding encryption.
    ''' </summary>
-   ''' <param name="ep">The encryption parts of the data.</param>
    ''' <param name="subjectBytes">The subject for this decryption.</param>
+   ''' <param name="encryptionParts">The encryption parts of the data.</param>
    ''' <returns>Decrypted data as a byte array.</returns>
-   ''' <exception cref="ArgumentException">Thrown if the size of the iv in <paramref name="ep"/> is not the same as 
+   ''' <exception cref="ArgumentException">Thrown if the size of the iv in <paramref name="encryptionParts"/> is not the same as 
    ''' the block size of the used algorithm.</exception>
-   Private Function RawDataDecryption(ep As EncryptionParts, subjectBytes As Byte()) As Byte()
+   Private Function RawDataDecryption(subjectBytes As Byte(), ByRef encryptionParts As EncryptionParts) As Byte()
       Dim result As Byte()
 
       ' "ep.formatId" has been checked in "decryptData" and does not need to be checked here
-      Dim cipherModeForFormatId As Byte = CIPHERMODES_FOR_FORMAT_ID(ep.formatId)
+      Dim cipherModeForFormatId As Byte = CIPHERMODES_FOR_FORMAT_ID(encryptionParts.formatId)
 
       Dim decryptionKey As Byte() = Nothing
 
@@ -865,20 +857,20 @@ Public Class SplitKeyEncryption : Implements IDisposable
       Try
          decryptionKey = GetKeyForEncryptionDependingOnSubject(subjectBytes)
 
-         Using aesDecryptor = GetCryptoTransformForCipherMode(cipherModeForFormatId, decryptionKey, ep.iv)
-            paddedDecryptedDataBytes = DecryptDataWithCryptoTransform(aesDecryptor, ep.encryptedData)
+         Using aesDecryptor = GetCryptoTransformForCipherMode(cipherModeForFormatId, decryptionKey, encryptionParts.iv)
+            paddedDecryptedDataBytes = DecryptDataWithCryptoTransform(aesDecryptor, encryptionParts.encryptedData)
          End Using
 
-         ArrayHelper.Clear(decryptionKey)   ' Clear sensitive data
+         ' Clear sensitive data
+         ArrayHelper.Clear(decryptionKey)
 
-         result = GetUnpaddedDataBytes(ep.formatId, paddedDecryptedDataBytes)
+         result = GetUnpaddedDataBytes(encryptionParts.formatId, paddedDecryptedDataBytes)
 
-         ArrayHelper.Clear(paddedDecryptedDataBytes)   ' Clear sensitive data
+         ' Clear sensitive data
+         ArrayHelper.Clear(paddedDecryptedDataBytes)
 
       Catch ex As Exception
-         '
          ' Clear sensitive data
-         '
          ArrayHelper.SafeClear(decryptionKey)
 
          ArrayHelper.SafeClear(paddedDecryptedDataBytes)
@@ -936,18 +928,18 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Make encryption string from the different parts of the encryption.
    ''' </summary>
-   ''' <param name="ep">Encryption parts that are to be converted to a string.</param>
+   ''' <param name="encryptionParts">Encryption parts that are to be converted to a string.</param>
    ''' <returns>Encryption string.</returns>
-   Private Shared Function MakeEncryptionStringFromEncryptionParts(ep As EncryptionParts) As String
-      Dim sb As New StringBuilder(CalculateStringBuilderCapacityForEncryptionParts(ep))
+   Private Shared Function MakeEncryptionStringFromEncryptionParts(ByRef encryptionParts As EncryptionParts) As String
+      Dim sb As New StringBuilder(CalculateStringBuilderCapacityForEncryptionParts(encryptionParts))
 
-      sb.Append(ep.formatId)
+      sb.Append(encryptionParts.formatId)
       sb.Append(SAFE_PARTS_SEPARATOR)
-      sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(ep.iv))
+      sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(encryptionParts.iv))
       sb.Append(SAFE_PARTS_SEPARATOR)
-      sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(ep.encryptedData))
+      sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(encryptionParts.encryptedData))
       sb.Append(SAFE_PARTS_SEPARATOR)
-      sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(ep.checksum))
+      sb.Append(Base32Encoding.EncodeSpellSafeNoPadding(encryptionParts.checksum))
 
       Return sb.ToString()
    End Function
@@ -955,15 +947,16 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Calculate capacity of StringBuilder for encryption parts.
    ''' </summary>
-   ''' <remarks>The size of the final string is 4 + SumOf(ceil(ArrayLength * 8 / 5)).
+   ''' <remarks>
+   ''' The size of the final string is 4 + SumOf(ceil(ArrayLength * 8 / 5)).
    ''' This is a complicated expression which is overestimated by the easier
    ''' expression 4 + SumOfArrayLengths * 7 / 4.
    ''' </remarks>
-   ''' <param name="ep">Encryption parts to calculate the capacity for</param>
+   ''' <param name="encryptionParts">Encryption parts to calculate the capacity for</param>
    ''' <returns>Slightly overestimated capacity of the StringBuilder for the
    ''' supplied encryption parts.</returns>
-   Private Shared Function CalculateStringBuilderCapacityForEncryptionParts(ep As EncryptionParts) As Integer
-      Dim arrayLengths As Integer = ep.TotalLength
+   Private Shared Function CalculateStringBuilderCapacityForEncryptionParts(ByRef encryptionParts As EncryptionParts) As Integer
+      Dim arrayLengths As Integer = encryptionParts.TotalLength
 
       Return 4 + arrayLengths + (arrayLengths >> 1) + (arrayLengths >> 2) ' 4 + arrayLengths * (1 + 1/2 + 1/4 = 1,75 = 7/4)
    End Function
@@ -971,12 +964,12 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Convert an encryption string into its parts.
    ''' </summary>
-   ''' <param name="encryptionText">Encryption string to be decrypted</param>
-   ''' <returns>Encryption parameters as an <see cref="EncryptionParts"/> object.</returns>
+   ''' <param name="encryptionText">Encryption string to be decrypted.</param>
+   ''' <param name="encryptionParts">Encryption parts to fill.</param>
    ''' <exception cref="ArgumentException">Thrown if no. of parts in string is not correct or the 
    ''' format id is unknown or invalid.</exception>
    ''' <exception cref="FormatException">Thrown if any part of the string is not a valid Base64 string.</exception>
-   Private Shared Function GetPartsFromPrintableString(encryptionText As String) As EncryptionParts
+   Private Shared Sub GetPartsFromPrintableString(encryptionText As String, ByRef encryptionParts As EncryptionParts)
       Dim formatCharacter As String = encryptionText(0)
 
       Dim formatId As Byte
@@ -991,26 +984,22 @@ Public Class SplitKeyEncryption : Implements IDisposable
 
       Dim parts As String() = encryptionText.Split(separator)
 
-      Dim result As New EncryptionParts With {
-         .formatId = formatId
-      }
+      encryptionParts.formatId = formatId
 
       If parts.Length = 4 Then
          If formatId >= FORMAT_ID_USE_SAFE_ENCODING Then
-            result.iv = Base32Encoding.DecodeSpellSafe(parts(1))
-            result.encryptedData = Base32Encoding.DecodeSpellSafe(parts(2))
-            result.checksum = Base32Encoding.DecodeSpellSafe(parts(3))
+            encryptionParts.iv = Base32Encoding.DecodeSpellSafe(parts(1))
+            encryptionParts.encryptedData = Base32Encoding.DecodeSpellSafe(parts(2))
+            encryptionParts.checksum = Base32Encoding.DecodeSpellSafe(parts(3))
          Else
-            result.iv = UnpaddedBase64.FromUnpaddedBase64String(parts(1))
-            result.encryptedData = UnpaddedBase64.FromUnpaddedBase64String(parts(2))
-            result.checksum = UnpaddedBase64.FromUnpaddedBase64String(parts(3))
+            encryptionParts.iv = UnpaddedBase64.FromUnpaddedBase64String(parts(1))
+            encryptionParts.encryptedData = UnpaddedBase64.FromUnpaddedBase64String(parts(2))
+            encryptionParts.checksum = UnpaddedBase64.FromUnpaddedBase64String(parts(3))
          End If
       Else
          Throw New ArgumentException($"Number of '{separator}' separated parts in encrypted text is not 4")
       End If
-
-      Return result
-   End Function
+   End Sub
 
    ''' <summary>
    ''' Gets the separator character for the format id.
@@ -1034,10 +1023,10 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Calculate the HMAC of the encrypted parts.
    ''' </summary>
-   ''' <param name="ep">Encrypted parts to calculate the checksum for.</param>
+   ''' <param name="encryptionParts">Encrypted parts to calculate the checksum for.</param>
    ''' <param name="subjectBytes">The subject for this HMAC calculation.</param>
-   ''' <returns>HMAC value calculated for <paramref name="ep"/> and <paramref name="ep"/>.</returns>
-   Private Function GetChecksumForEncryptionParts(ep As EncryptionParts, subjectBytes As Byte()) As Byte()
+   ''' <returns>HMAC value calculated for <paramref name="encryptionParts"/> and <paramref name="encryptionParts"/>.</returns>
+   Private Function GetChecksumForEncryptionParts(subjectBytes As Byte(), ByRef encryptionParts As EncryptionParts) As Byte()
       Dim result As Byte()
 
       Dim hmacKey As Byte() = Nothing
@@ -1052,15 +1041,15 @@ Public Class SplitKeyEncryption : Implements IDisposable
       ' and the "catch" part.
       '
       Try
-         hmacKey = GetHMACKeyForFormat(ep.formatId, subjectBytes)
+         hmacKey = GetHMACKeyForFormat(encryptionParts.formatId, subjectBytes)
 
          hmac = New HMACSHA256(hmacKey)
 
-         formatIdArray(0) = ep.formatId
+         formatIdArray(0) = encryptionParts.formatId
 
          hmac.TransformBlock(formatIdArray, 0, formatIdArray.Length, formatIdArray, 0)
-         hmac.TransformBlock(ep.iv, 0, ep.iv.Length, ep.iv, 0)
-         hmac.TransformFinalBlock(ep.encryptedData, 0, ep.encryptedData.Length)
+         hmac.TransformBlock(encryptionParts.iv, 0, encryptionParts.iv.Length, encryptionParts.iv, 0)
+         hmac.TransformFinalBlock(encryptionParts.encryptedData, 0, encryptionParts.encryptedData.Length)
 
          result = hmac.Hash
 
