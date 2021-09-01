@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 3.0.1
+' Version: 3.1.0
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
@@ -31,6 +31,7 @@
 '    2020-12-16: V2.0.3: Made usage of SyncLock for disposal consistent.
 '    2021-06-08: V3.0.0: Byte array is protected by an index dependent masker now. No more need for an obfuscation array.
 '    2021-06-09: V3.0.1: Fixed wrong hash code calculation when only part of a source array was protected.
+'    2021-09-01: V3.1.0: Added forgotten Dispose of the index masker.
 '
 
 ''' <summary>
@@ -466,9 +467,6 @@ Public Class ProtectedByteArray : Implements IDisposable
    ''' Clear all data.
    ''' </summary>
    Private Sub ClearData()
-      ArrayHelper.Clear(m_ByteArray)
-      ArrayHelper.Clear(m_IndexArray)
-
       m_HashCode = 0
 
       m_StoredArrayLength = 0
@@ -477,7 +475,10 @@ Public Class ProtectedByteArray : Implements IDisposable
 
       m_HasChanged = False
 
+      ArrayHelper.Clear(m_ByteArray)
       m_ByteArray = Nothing
+
+      ArrayHelper.Clear(m_IndexArray)
       m_IndexArray = Nothing
    End Sub
 #End Region
@@ -602,8 +603,14 @@ Public Class ProtectedByteArray : Implements IDisposable
          If Not m_IsDisposed Then
             m_IsDisposed = True
 
-            If disposeManagedResources Then _
+            If disposeManagedResources Then
                ClearData()
+
+               If m_IndexMasker IsNot Nothing Then
+                  m_IndexMasker.Dispose()
+                  m_IndexMasker = Nothing
+               End If
+            End If
 
             ' Free unmanaged resources (unmanaged objects) and override Finalize() below.
             ' Set large fields to null.

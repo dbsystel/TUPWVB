@@ -43,6 +43,7 @@
 '    2021-06-15: V2.1.1: Clear key in MaskedIndex.
 '    2021-08-27: V2.2.0: Remove unnecessary Streams and also do a little refactoring.
 '    2021-08-27: V2.2.1: Replace private class with structure.
+'    2021-09-01: V2.3.0: Fixed missing Dispose in ProtectedByteArray.
 '
 
 Imports System.Security.Cryptography
