@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.2.1
+' Version: 2.3.0
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
