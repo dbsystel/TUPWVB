@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 3.1.0
+' Version: 3.1.1
 '
 ' Change history:
 '    2020-04-23: V1.0.0: Created.
@@ -32,6 +32,7 @@
 '    2021-06-08: V3.0.0: Byte array is protected by an index dependent masker now. No more need for an obfuscation array.
 '    2021-06-09: V3.0.1: Fixed wrong hash code calculation when only part of a source array was protected.
 '    2021-09-01: V3.1.0: Added forgotten Dispose of the index masker.
+'    2021-09-03: V3.1.1: Fortify finding: Added forgotten check for maximum count of source array.
 '
 
 ''' <summary>
@@ -300,11 +301,11 @@ Public Class ProtectedByteArray : Implements IDisposable
       If sourceArray.Length > 0 AndAlso offset >= sourceArray.Length Then _
          Throw New ArgumentOutOfRangeException(NameOf(offset))
 
-      If count < 0 Then _
+      If (count < 0) OrElse (count > MAX_SOURCE_ARRAY_LENGTH) Then _
          Throw New ArgumentOutOfRangeException(NameOf(count))
 
       If (offset + count) > sourceArray.Length Then _
-         Throw New ArgumentException("Array is not large enough for count elements from offset")
+            Throw New ArgumentException("Array is not large enough for count elements from offset")
    End Sub
 
    ''' <summary>

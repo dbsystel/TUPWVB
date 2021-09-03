@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.3.0
+' Version: 2.3.1
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -44,6 +44,7 @@
 '    2021-08-27: V2.2.0: Remove unnecessary Streams and also do a little refactoring.
 '    2021-08-27: V2.2.1: Replace private class with structure.
 '    2021-09-01: V2.3.0: Fixed missing Dispose in ProtectedByteArray.
+'    2021-09-03: V2.3.1: Fixed Fortify findings.
 '
 
 Imports System.Security.Cryptography

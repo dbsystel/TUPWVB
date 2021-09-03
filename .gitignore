@@ -346,3 +346,6 @@ healthchecksdb
 # No nuget data
 *.nuget
 *.nuspec
+
+# No Fortify scan results
+*.fpr

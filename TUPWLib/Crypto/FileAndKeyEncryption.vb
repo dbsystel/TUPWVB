@@ -18,13 +18,14 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.1.0
+' Version: 2.1.1
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
 '    2020-12-10: V2.0.0: Correct handling of disposed instances.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '    2020-12-16: V2.1.0: Made usage of SyncLock for disposal consistent and added check for maximum file size.
+'    2021-09-03: V2.1.1: Fortify finding: Removed unused "CheckState" method.
 '
 
 Imports System.IO
@@ -224,17 +225,6 @@ Public Class FileAndKeyEncryption : Implements IDisposable
    '******************************************************************
    ' Private methods
    '******************************************************************
-
-#Region "Check methods"
-   ''' <summary>
-   ''' Throws an exception if this instance is not in a valid state
-   ''' </summary>
-   ''' <exception cref="ObjectDisposedException">Thrown when this instance has already been disposed of.</exception>
-   Private Sub CheckState()
-      If m_IsDisposed Then _
-         Throw New ObjectDisposedException(NameOf(FileAndKeyEncryption))
-   End Sub
-#End Region
 
 #Region "File helper methods"
    ''' <summary>

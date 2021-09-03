@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.0.2
+' Version: 2.1.0
 '
 ' Change history:
 '    2020-04-30: V1.0.0: Created.
@@ -27,6 +27,7 @@
 '    2020-12-10: V2.0.0: Added correct handling of disposed instance.
 '    2020-12-11: V2.0.1: Put IsValid method where it belongs.
 '    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent.
+'    2021-09-03: V2.1.0: Fortify finding: Dispose of symmetric encryption algorithm only if we instantiated it ourselves.
 '
 
 Imports System.Security.Cryptography
@@ -55,6 +56,8 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
    Private m_BlockSizeInBytes As Integer
    Private m_XorMask As Byte()
    Private m_XorMaskPosition As Integer
+
+   Private m_OwnSymmetricAlgorithm As Boolean = False
 
    ''' <summary>
    ''' Object only used for locking the call to Dispose.
@@ -99,6 +102,8 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
 
       If algorithmInstance Is Nothing Then _
          Throw New ArgumentException(String.Format("algorithmName '{0}' is not a valid algorithm", algorithmName))
+
+      m_OwnSymmetricAlgorithm = True
 
       InitializeInstance(algorithmInstance, key, iv)
    End Sub
@@ -264,10 +269,10 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
                                      m_BlockSizeInBytes))
 
       ' Create a private copy of the iv counter so that the counter source is not modified by counting
-      m_Counter = CType(iv.Clone(), Byte())
+      m_Counter = DirectCast(iv.Clone(), Byte())
 
       ' Create an encryptor from the algorithm
-      m_CounterEncryptor = m_SymmetricAlgorithm.CreateEncryptor(key, iv)   ' Iv is not used for ECB mode, anyway.
+      m_CounterEncryptor = m_SymmetricAlgorithm.CreateEncryptor(key, iv)   ' Iv is not used by ECB mode, anyway.
 
       ' Allocate the xor mask and initialize the pointer
       m_XorMask = New Byte(0 To m_BlockSizeInBytes - 1) {}
@@ -388,7 +393,11 @@ Public Class CounterModeCryptoTransform : Implements ICryptoTransform, IDisposab
       ArrayHelper.Clear(m_XorMask)
 
       m_CounterEncryptor.Dispose()
-      m_SymmetricAlgorithm.Dispose()
+
+      If m_OwnSymmetricAlgorithm Then
+         m_SymmetricAlgorithm.Dispose()
+         m_OwnSymmetricAlgorithm = False
+      End If
 
       m_Counter = Nothing
       m_XorMask = Nothing
