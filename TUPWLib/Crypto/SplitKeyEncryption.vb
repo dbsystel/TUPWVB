@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.3.2
+' Version: 2.3.3
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -46,6 +46,7 @@
 '    2021-09-01: V2.3.0: Fixed missing Dispose in ProtectedByteArray.
 '    2021-09-03: V2.3.1: Fixed Fortify findings.
 '    2021-10-18: V2.3.2: Corrected names for structure properties.
+'    2021-10-18: V2.3.3: Corrected entropy threshold constant.
 '
 
 Imports System.Security.Cryptography
@@ -110,7 +111,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    ''' <summary>
    ''' Minimum entropy per byte for source bytes.
    ''' </summary>
-   Private Const ENTROPY_THRESHOLD As Double = 0.00012207   ' I.e. 1/2^13 which is representable as a simple floating point no.
+   Private Const ENTROPY_THRESHOLD As Double = 0.0001220703125 ' I.e. 1/2^13 which is representable as a simple floating point no.
 
    ''' <summary>
    ''' Salt prefix for key calculation.
