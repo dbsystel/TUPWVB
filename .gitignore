@@ -349,3 +349,5 @@ healthchecksdb
 
 # No Fortify scan results
 *.fpr
+/TUPWLib-errors.txt
+/TUPWLib-workbook.pdf

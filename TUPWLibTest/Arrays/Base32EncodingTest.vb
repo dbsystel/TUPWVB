@@ -51,7 +51,7 @@ Imports DB.BCM.TUPW
    End Sub
 
    <TestMethod()> Public Sub TestPaddedEncode()
-      Dim sourceBytes As Byte() = New Byte() {}
+      Dim sourceBytes As Byte() = Array.Empty(Of Byte)
 
       Dim b32Text As String = Base32Encoding.Encode(sourceBytes)
       Assert.IsTrue(b32Text.Length = 0)
@@ -162,7 +162,7 @@ Imports DB.BCM.TUPW
    End Sub
 
    <TestMethod()> Public Sub TestPaddedSpellSafeEncode()
-      Dim sourceBytes As Byte() = New Byte() {}
+      Dim sourceBytes As Byte() = Array.Empty(Of Byte)
 
       Dim b32Text As String = Base32Encoding.EncodeSpellSafe(sourceBytes)
       Assert.IsTrue(b32Text.Length = 0)
@@ -234,7 +234,7 @@ Imports DB.BCM.TUPW
    End Sub
 
    <TestMethod()> Public Sub TestUnpaddedEncode()
-      Dim sourceBytes As Byte() = New Byte() {}
+      Dim sourceBytes As Byte() = Array.Empty(Of Byte)
 
       Dim b32Text As String = Base32Encoding.EncodeNoPadding(sourceBytes)
       Assert.IsTrue(b32Text.Length = 0)
@@ -305,7 +305,7 @@ Imports DB.BCM.TUPW
    End Sub
 
    <TestMethod()> Public Sub TestUnpaddedSpellSafeEncode()
-      Dim sourceBytes As Byte() = New Byte() {}
+      Dim sourceBytes As Byte() = Array.Empty(Of Byte)
 
       Dim b32Text As String = Base32Encoding.EncodeSpellSafeNoPadding(sourceBytes)
       Assert.IsTrue(b32Text.Length = 0)
@@ -732,7 +732,7 @@ Imports DB.BCM.TUPW
 #End Region
 
 #Region "Private helper methods"
-   Private Sub CheckByteArray(expectedArray As Byte(), resultArray() As Byte)
+   Private Shared Sub CheckByteArray(expectedArray As Byte(), resultArray() As Byte)
       Assert.AreEqual(expectedArray.Length, resultArray.Length)
 
       For i As Integer = 0 To resultArray.Length - 1

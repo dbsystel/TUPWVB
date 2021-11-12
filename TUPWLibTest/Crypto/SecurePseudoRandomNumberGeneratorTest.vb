@@ -212,7 +212,7 @@ Imports DB.BCM.TUPW
    ' Helper methods
    ' ==============
 
-   Private Sub TestSignedByteWithLimits(ByVal fromValue As SByte, ByVal toValue As SByte, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestSignedByteWithLimits(ByVal fromValue As SByte, ByVal toValue As SByte, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As SByte
 
       If randomLimits Then
@@ -227,7 +227,7 @@ Imports DB.BCM.TUPW
       TestSignedNumberBoundaries("SByte", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestByteWithLimits(ByVal fromValue As Byte, ByVal toValue As Byte, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestByteWithLimits(ByVal fromValue As Byte, ByVal toValue As Byte, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As Byte
 
       If randomLimits Then
@@ -242,7 +242,7 @@ Imports DB.BCM.TUPW
       TestUnsignedNumberBoundaries("Byte", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestShortWithLimits(ByVal fromValue As Short, ByVal toValue As Short, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestShortWithLimits(ByVal fromValue As Short, ByVal toValue As Short, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As Short
 
       If randomLimits Then
@@ -257,7 +257,7 @@ Imports DB.BCM.TUPW
       TestSignedNumberBoundaries("Short", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestUnsignedShortWithLimits(ByVal fromValue As UShort, ByVal toValue As UShort, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestUnsignedShortWithLimits(ByVal fromValue As UShort, ByVal toValue As UShort, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As UShort
 
       If randomLimits Then
@@ -272,7 +272,7 @@ Imports DB.BCM.TUPW
       TestUnsignedNumberBoundaries("UShort", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestIntegerWithLimits(ByVal fromValue As Integer, ByVal toValue As Integer, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestIntegerWithLimits(ByVal fromValue As Integer, ByVal toValue As Integer, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As Integer
 
       If randomLimits Then
@@ -287,7 +287,7 @@ Imports DB.BCM.TUPW
       TestSignedNumberBoundaries("Integer", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestUnsignedIntegerWithLimits(ByVal fromValue As UInteger, ByVal toValue As UInteger, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestUnsignedIntegerWithLimits(ByVal fromValue As UInteger, ByVal toValue As UInteger, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As UInteger
 
       If randomLimits Then
@@ -302,7 +302,7 @@ Imports DB.BCM.TUPW
       TestUnsignedNumberBoundaries("UInteger", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestLongWithLimits(ByVal fromValue As Long, ByVal toValue As Long, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestLongWithLimits(ByVal fromValue As Long, ByVal toValue As Long, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As Long
 
       If randomLimits Then
@@ -317,7 +317,7 @@ Imports DB.BCM.TUPW
       TestSignedNumberBoundaries("Long", aValue, fromValue, toValue)
    End Sub
 
-   Private Sub TestUnsignedLongWithLimits(ByVal fromValue As ULong, ByVal toValue As ULong, Optional ByVal randomLimits As Boolean = True)
+   Private Shared Sub TestUnsignedLongWithLimits(ByVal fromValue As ULong, ByVal toValue As ULong, Optional ByVal randomLimits As Boolean = True)
       Dim aValue As ULong
 
       If randomLimits Then
