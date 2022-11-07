@@ -18,11 +18,12 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.1
+' Version: 1.1.0
 '
 ' Change history:
 '    2020-05-28: V1.0.0: Created.
 '    2020-06-15: V1.0.1: Clear key bytes.
+'    2022-11-07: V1.1.0: Better mixing of bytes from and to buffers.
 '
 
 Imports System.Security.Cryptography
@@ -33,7 +34,7 @@ Imports System.Security.Cryptography
 Public Class MaskedIndex : Implements IDisposable
    Private Const BYTE_MASK As Integer = &HFF
    Private Const BYTE_PRIMER As Byte = &H5A
-   Private Const SOURCE_BUFFER_INDEX_START As Integer = 6
+   Private Const MAX_INTEGER_MASK As Integer = &H7FF_FFFF
 
 #Region "Instance variables"
    '******************************************************************
@@ -71,9 +72,11 @@ Public Class MaskedIndex : Implements IDisposable
    ''' <param name="forIndex">The index to use</param>
    ''' <returns>The <c>Integer</c> mask for the given index</returns>
    Public Function GetIntegerMask(forIndex As Integer) As Integer
-      GetMaskBuffer(forIndex)
+      Dim sanitizedIndex As Integer = forIndex And MAX_INTEGER_MASK
 
-      Dim result As Integer = BitConverter.ToInt32(m_MaskBuffer, (7 * (Math.Abs(forIndex) Mod 13) + 3) Mod 13)
+      GetMaskBuffer(sanitizedIndex)
+
+      Dim result As Integer = GetMaskIntegerFromArray(m_MaskBuffer, (7 * (sanitizedIndex Mod 13) + 3) Mod 13)
 
       ArrayHelper.Clear(m_MaskBuffer)
 
@@ -87,10 +90,12 @@ Public Class MaskedIndex : Implements IDisposable
    ''' <param name="forIndex">The index to use</param>
    ''' <returns>The <c>Byte</c> mask for the given index</returns>
    Public Function GetByteMask(forIndex As Integer) As Byte
-      GetMaskBuffer(forIndex)
+      Dim sanitizedIndex As Integer = forIndex And MAX_INTEGER_MASK
+
+      GetMaskBuffer(sanitizedIndex)
 
       ' No need for "Math.Abs" as "And 15" removes the sign
-      Dim result As Byte = m_MaskBuffer((13 * (forIndex And 15) + 5) And 15)
+      Dim result As Byte = m_MaskBuffer((13 * (sanitizedIndex And 15) + 5) And 15)
 
       ArrayHelper.Clear(m_MaskBuffer)
 
@@ -125,11 +130,12 @@ Public Class MaskedIndex : Implements IDisposable
    ''' <summary>
    ''' Calculate a buffer full of mask bytes
    ''' </summary>
-   ''' <param name="forIndex">The index to use for mask calculation</param>
-   Private Sub GetMaskBuffer(forIndex As Integer)
+   ''' <param name="sanitizedIndex">Sanitized index to use for mask calculation</param>
+   Private Sub GetMaskBuffer(sanitizedIndex As Integer)
       ArrayHelper.Fill(m_SourceBuffer, BYTE_PRIMER)
 
-      IntToBytes(forIndex, m_SourceBuffer, SOURCE_BUFFER_INDEX_START)
+      Dim offset As Integer = ((11 * sanitizedIndex) + 2) Mod 13
+      StoreIntegerInArray(sanitizedIndex, m_SourceBuffer, offset)
 
       m_Encryptor.TransformBlock(m_SourceBuffer, 0, m_SourceBuffer.Length, m_MaskBuffer, 0)
 
@@ -137,17 +143,56 @@ Public Class MaskedIndex : Implements IDisposable
    End Sub
 
    ''' <summary>
-   ''' Converts an <c>Integer</c> into an *existing* byte array
+   ''' Stores the bytes of an integer in an existing array
    ''' </summary>
-   ''' <param name="i">Integer to convert</param>
+   ''' <param name="sourceInt">Integer to convert</param>
    ''' <param name="destArray">Destination array</param>
    ''' <param name="startPos">Start position in the <paramref name="destArray"/></param>
-   Private Shared Sub IntToBytes(i As Integer, ByRef destArray As Byte(), startPos As Integer)
-      destArray(startPos) = CByte((i >> 24) And BYTE_MASK)
-      destArray(startPos + 1) = CByte((i >> 16) And BYTE_MASK)
-      destArray(startPos + 2) = CByte((i >> 8) And BYTE_MASK)
-      destArray(startPos + 3) = CByte(i And BYTE_MASK)
+   Private Shared Sub StoreIntegerInArray(sourceInt As Integer, ByRef destArray As Byte(), startPos As Integer)
+      Dim toPos As Integer = startPos
+      Dim work As Integer = sourceInt
+
+      destArray(toPos) = CByte(work And BYTE_MASK)
+
+      toPos = (toPos + 3) And 15
+      work >>= 8
+      destArray(toPos) = CByte(work And BYTE_MASK)
+
+      toPos = (toPos + 3) And 15
+      work >>= 8
+      destArray(toPos) = CByte(work And BYTE_MASK)
+
+      toPos = (toPos + 3) And 15
+      work >>= 8
+      destArray(toPos) = CByte(work And BYTE_MASK)
    End Sub
+
+   ''' <summary>
+   ''' Get a mask integer from the bytes in an array
+   ''' </summary>
+   ''' <param name="sourceArray">Byte array to get the integer from</param>
+   ''' <param name="startPos">Start position in the byte array</param>
+   ''' <returns>Mask integer</returns>
+   Private Shared Function GetMaskIntegerFromArray(sourceArray As Byte(), startPos As Integer) As Integer
+      Dim result As Integer = 0
+      Dim fromPos As Integer = startPos
+
+      result = sourceArray(fromPos)
+
+      result <<= 8
+      fromPos = (fromPos + 3) And 15
+      result = result Or (sourceArray(fromPos) And BYTE_MASK)
+
+      result <<= 8
+      fromPos = (fromPos + 3) And 15
+      result = result Or (sourceArray(fromPos) And BYTE_MASK)
+
+      result <<= 8
+      fromPos = (fromPos + 3) And 15
+      result = result Or (sourceArray(fromPos) And BYTE_MASK)
+
+      Return result
+   End Function
 #End Region
 
 #Region "IDisposable Support"
