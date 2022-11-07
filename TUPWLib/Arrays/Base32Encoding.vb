@@ -56,7 +56,7 @@ Public NotInheritable Class Base32Encoding
    ' RFC 4648
 
    '
-   ' This Is the RFC 4648 mapping:
+   ' This is the RFC 4648 mapping:
    '
    ' Value      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
    ' Character  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  2  3  4  5  6  7
@@ -289,8 +289,6 @@ Public NotInheritable Class Base32Encoding
 
          If (bitsRemaining > BITS_PER_CHARACTER) Then
             mask = charValue << (bitsRemaining - BITS_PER_CHARACTER)
-            ' This is *not* a silly bit operation
-            ' SonarLint is silly in that it does not consider that this is done in a loop
             actByte = actByte Or mask
             bitsRemaining -= BITS_PER_CHARACTER
          Else
@@ -361,8 +359,6 @@ Public NotInheritable Class Base32Encoding
          Dim arrayIndex As Integer = 0
 
          For Each b As Byte In aByteArray
-            ' This is *not* a silly bit operation
-            ' SonarLint is silly in that it does not consider that this is done in a loop
             actValue = actValue Or (b >> (BITS_PER_BYTE - bitsRemaining))
             result(arrayIndex) = mapByteToChar(actValue)
             arrayIndex += 1
