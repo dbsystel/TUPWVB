@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2021 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.1.0
+' Version: 1.2.0
 '
 ' Change history:
 '    2020-05-28: V1.0.0: Created.
 '    2020-06-15: V1.0.1: Clear key bytes.
 '    2022-11-07: V1.1.0: Better mixing of bytes from and to buffers.
+'    2022-11-08: V1.2.0: Name all constants.
 '
 
 Imports System.Security.Cryptography
@@ -32,19 +33,82 @@ Imports System.Security.Cryptography
 ''' Create masks for indices
 ''' </summary>
 Public Class MaskedIndex : Implements IDisposable
-   Private Const BYTE_MASK As Integer = &HFF
-   Private Const BYTE_PRIMER As Byte = &H5A
-   Private Const MAX_INTEGER_MASK As Integer = &H7FF_FFFF
+#Region "Private constants"
+   ''' <summary>
+   ''' Key size
+   ''' </summary>
+   Private Const KEY_SIZE As Integer = 16
+
+   ''' <summary>
+   ''' Maximum key index
+   ''' </summary>
+   Private Const MAX_KEY_INDEX As Integer = KEY_SIZE - 1
+
+   ''' <summary>
+   ''' Buffer size
+   ''' </summary>
+   Private Const BUFFER_SIZE As Integer = 16
+
+   ''' <summary>
+   ''' Maximum buffer index
+   ''' </summary>
+   Private Const MAX_BUFFER_INDEX As Integer = BUFFER_SIZE - 1
+
+   ''' <summary>
+   ''' Mask for additions modulo buffer size
+   ''' </summary>
+   Private Const BUFFER_SIZE_MASK As Integer = MAX_BUFFER_INDEX
+
+   ''' <summary>
+   ''' Modulo value for the offset of an integer in a buffer
+   ''' </summary>
+   Private Const MOD_BUFFER_SIZE_FOR_INTEGER As Integer = BUFFER_SIZE - 3
+
+   ''' <summary>
+   ''' Byte value to prime buffer with
+   ''' </summary>
+   Private Const BUFFER_PRIMER As Byte = &H5A
+
+   ''' <summary>
+   ''' Step size for setting and getting bytes in the buffer
+   ''' </summary>
+   Private Const STEP_SIZE As Integer = 3
+
+   ''' <summary>
+   ''' Number of bits to shift for a byte shift
+   ''' </summary>
+   Private Const BYTE_SHIFT As Integer = 8
+
+   ''' <summary>
+   ''' Byte mask for integers
+   ''' </summary>
+   Private Const INTEGER_BYTE_MASK As Integer = &HFF
+
+   ''' <summary>
+   ''' Maximum allowed integer mask
+   ''' </summary>
+   Private Const MAX_INTEGER_MASK As Integer = &H7FFF_FFFF
+#End Region
 
 #Region "Instance variables"
    '******************************************************************
    ' Instance variables
    '******************************************************************
 
+   ''' <summary>
+   ''' Private encryptor
+   ''' </summary>
    Private m_Encryptor As ICryptoTransform
 
-   Private ReadOnly m_SourceBuffer As Byte() = New Byte(0 To 15) {}
-   Private ReadOnly m_MaskBuffer As Byte() = New Byte(0 To 15) {}
+   ''' <summary>
+   ''' Source buffer for mask generation
+   ''' </summary>
+   Private ReadOnly m_SourceBuffer As Byte() = New Byte(0 To MAX_BUFFER_INDEX) {}
+
+   ''' <summary>
+   ''' Buffer for encryption result
+   ''' </summary>
+   Private ReadOnly m_MaskBuffer As Byte() = New Byte(0 To MAX_BUFFER_INDEX) {}
 #End Region
 
 #Region "Constructor"
@@ -76,7 +140,8 @@ Public Class MaskedIndex : Implements IDisposable
 
       GetMaskBuffer(sanitizedIndex)
 
-      Dim result As Integer = GetMaskIntegerFromArray(m_MaskBuffer, (7 * (sanitizedIndex Mod 13) + 3) Mod 13)
+      Dim result As Integer = GetMaskIntegerFromArray(m_MaskBuffer,
+                                                      (7 * (sanitizedIndex Mod MOD_BUFFER_SIZE_FOR_INTEGER) + 3) Mod MOD_BUFFER_SIZE_FOR_INTEGER)
 
       ArrayHelper.Clear(m_MaskBuffer)
 
@@ -95,7 +160,7 @@ Public Class MaskedIndex : Implements IDisposable
       GetMaskBuffer(sanitizedIndex)
 
       ' No need for "Math.Abs" as "And 15" removes the sign
-      Dim result As Byte = m_MaskBuffer((13 * (sanitizedIndex And 15) + 5) And 15)
+      Dim result As Byte = m_MaskBuffer((13 * (sanitizedIndex And BUFFER_SIZE_MASK) + 5) And BUFFER_SIZE_MASK)
 
       ArrayHelper.Clear(m_MaskBuffer)
 
@@ -112,7 +177,7 @@ Public Class MaskedIndex : Implements IDisposable
    ''' Initialize the cipher
    ''' </summary>
    Private Sub InitializeCipher()
-      Dim key As Byte() = New Byte(0 To 15) {}
+      Dim key As Byte() = New Byte(0 To MAX_KEY_INDEX) {}
 
       SecurePseudoRandomNumberGenerator.GetBytes(key)
 
@@ -132,9 +197,9 @@ Public Class MaskedIndex : Implements IDisposable
    ''' </summary>
    ''' <param name="sanitizedIndex">Sanitized index to use for mask calculation</param>
    Private Sub GetMaskBuffer(sanitizedIndex As Integer)
-      ArrayHelper.Fill(m_SourceBuffer, BYTE_PRIMER)
+      ArrayHelper.Fill(m_SourceBuffer, BUFFER_PRIMER)
 
-      Dim offset As Integer = ((11 * sanitizedIndex) + 2) Mod 13
+      Dim offset As Integer = (11 * (sanitizedIndex Mod MOD_BUFFER_SIZE_FOR_INTEGER) + 2) Mod MOD_BUFFER_SIZE_FOR_INTEGER
       StoreIntegerInArray(sanitizedIndex, m_SourceBuffer, offset)
 
       m_Encryptor.TransformBlock(m_SourceBuffer, 0, m_SourceBuffer.Length, m_MaskBuffer, 0)
@@ -152,19 +217,19 @@ Public Class MaskedIndex : Implements IDisposable
       Dim toPos As Integer = startPos
       Dim work As Integer = sourceInt
 
-      destArray(toPos) = CByte(work And BYTE_MASK)
+      destArray(toPos) = CByte(work And INTEGER_BYTE_MASK)
 
-      toPos = (toPos + 3) And 15
-      work >>= 8
-      destArray(toPos) = CByte(work And BYTE_MASK)
+      toPos = (toPos + STEP_SIZE) And BUFFER_SIZE_MASK
+      work >>= BYTE_SHIFT
+      destArray(toPos) = CByte(work And INTEGER_BYTE_MASK)
 
-      toPos = (toPos + 3) And 15
-      work >>= 8
-      destArray(toPos) = CByte(work And BYTE_MASK)
+      toPos = (toPos + STEP_SIZE) And BUFFER_SIZE_MASK
+      work >>= BYTE_SHIFT
+      destArray(toPos) = CByte(work And INTEGER_BYTE_MASK)
 
-      toPos = (toPos + 3) And 15
-      work >>= 8
-      destArray(toPos) = CByte(work And BYTE_MASK)
+      toPos = (toPos + STEP_SIZE) And BUFFER_SIZE_MASK
+      work >>= BYTE_SHIFT
+      destArray(toPos) = CByte(work And INTEGER_BYTE_MASK)
    End Sub
 
    ''' <summary>
@@ -179,17 +244,17 @@ Public Class MaskedIndex : Implements IDisposable
 
       result = sourceArray(fromPos)
 
-      result <<= 8
-      fromPos = (fromPos + 3) And 15
-      result = result Or (sourceArray(fromPos) And BYTE_MASK)
+      result <<= BYTE_SHIFT
+      fromPos = (fromPos + STEP_SIZE) And BUFFER_SIZE_MASK
+      result = result Or (sourceArray(fromPos) And INTEGER_BYTE_MASK)
 
-      result <<= 8
-      fromPos = (fromPos + 3) And 15
-      result = result Or (sourceArray(fromPos) And BYTE_MASK)
+      result <<= BYTE_SHIFT
+      fromPos = (fromPos + STEP_SIZE) And BUFFER_SIZE_MASK
+      result = result Or (sourceArray(fromPos) And INTEGER_BYTE_MASK)
 
-      result <<= 8
-      fromPos = (fromPos + 3) And 15
-      result = result Or (sourceArray(fromPos) And BYTE_MASK)
+      result <<= BYTE_SHIFT
+      fromPos = (fromPos + STEP_SIZE) And BUFFER_SIZE_MASK
+      result = result Or (sourceArray(fromPos) And INTEGER_BYTE_MASK)
 
       Return result
    End Function
