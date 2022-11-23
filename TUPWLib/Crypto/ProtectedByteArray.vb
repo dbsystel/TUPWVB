@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -34,6 +34,9 @@
 '    2021-09-01: V3.1.0: Added forgotten Dispose of the index masker.
 '    2021-09-03: V3.1.1: Fortify finding: Added forgotten check for maximum count of source array.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Stores a byte array in a protected and obfuscated form.

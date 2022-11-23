@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -28,6 +28,8 @@
 '    2020-10-26: V1.0.4: Added a few comments re. the use of non-short-circuit logic.
 '    2021-08-27: V1.1.0: Added SafeClear method.
 '
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Class with all the array methods missing from the <see cref="Array"/> class.

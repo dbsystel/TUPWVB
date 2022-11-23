@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -26,6 +26,9 @@
 '    2021-07-12: V1.0.2: Removed unnecessary if statements.
 '    2021-07-13: V1.1.0: Simplified blinding.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Blinding for byte arrays.

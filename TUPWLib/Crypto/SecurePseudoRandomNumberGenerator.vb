@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -18,14 +18,18 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.2.0
+' Version: 1.3.0
 '
 ' Change history:
 '    2020-04-21: V1.0.1: Created.
 '    2020-05-15: V1.0.1: Made constants consistent with types.
 '    2020-05-27: V1.1.0: Refactored function value mapping into own shared class.
 '    2020-06-19: V1.2.0: Use new FunctionValueRangeMapperAPI.
+'    2022-11-22: V1.3.0: Use RandomNumberGenerator.Create() to create new instance.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Security.Cryptography
 
@@ -52,7 +56,7 @@ Public NotInheritable Class SecurePseudoRandomNumberGenerator
    ''' 
    ''' <para><see cref="RNGCryptoServiceProvider"/> is thread-safe, so there is no need to synchronize access.</para>
    ''' </remarks>
-   Private Shared ReadOnly m_Prng As New RNGCryptoServiceProvider()
+   Private Shared ReadOnly m_Prng As RandomNumberGenerator = RandomNumberGenerator.Create()
 #End Region
 
 #Region "Public methods"

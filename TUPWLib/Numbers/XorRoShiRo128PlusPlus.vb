@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -24,6 +24,9 @@
 '    2020-05-06: V1.0.0: Created.
 '    2020-05-25: V1.0.1: Added exceptions for constructor with array.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Numerics
 

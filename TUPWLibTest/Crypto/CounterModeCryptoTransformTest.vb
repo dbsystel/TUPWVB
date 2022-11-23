@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -18,18 +18,22 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.2
+' Version: 1.1.0
 '
 ' Change history:
 '    2020-05-12: V1.0.0: Created.
-'    2020-10-26: V1.0.1: Fixed "TestInvalidAlgorithmName" to be more understandble.
+'    2020-10-26: V1.0.1: Fixed "TestInvalidAlgorithmName" to be more understandable.
 '    2021-07-21: V1.0.2: Simplified constants instantiations.
+'    2022-11-22: V1.1.0: Use Aes.Create() for cipher creation.
 '
 
+Option Strict On
+Option Explicit On
+
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.IO
 Imports System.Security.Cryptography
-' Imports Microsoft.VisualStudio.TestTools.UnitTesting
-Imports DB.BCM.TUPW
+Imports TUPWLib
 
 <TestClass()> Public Class CounterModeCryptoTransformTest
 #Region "Private constants"
@@ -305,7 +309,7 @@ Imports DB.BCM.TUPW
    Private Function DoEncryption(key As Byte(), iv As Byte(), plaintext As Byte()) As Byte()
       Dim result As Byte()
 
-      Using algo As New AesCng()
+      Using algo As Aes = Aes.Create()
          Using ms As New MemoryStream()
             Using cmct As New CounterModeCryptoTransform(algo, key, iv)
                Using encryptionStream As New CryptoStream(ms, cmct, CryptoStreamMode.Write)

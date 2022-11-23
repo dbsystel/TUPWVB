@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,6 +25,9 @@
 '    2020-05-12: V1.1.0: Corrected relative entropy calculation.
 '    2020-05-14: V1.2.0: Exposed no. of processed bytes as a read-only property.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Calculate the entropy of byte arrays.

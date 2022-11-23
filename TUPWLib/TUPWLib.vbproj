@@ -12,7 +12,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2E46A307-075E-4DC3-9D8A-F5FA7BA6ACD4}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>DB.BCM.TUPW</RootNamespace>
+    <RootNamespace>TUPWLib</RootNamespace>
     <AssemblyName>TUPWLib</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Windows</MyType>

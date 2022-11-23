@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,9 +25,12 @@
 '    2020-10-27: V1.0.1: Added test case for empty HMAC.
 '
 
-Imports System.Text
+Option Strict On
+Option Explicit On
+
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
-Imports DB.BCM.TUPW
+Imports System.Text
+Imports TUPWLib
 
 <TestClass()> Public Class SplitKeyEncryptionTest
 #Region "Private constants"

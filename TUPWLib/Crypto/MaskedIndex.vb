@@ -18,14 +18,18 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.2.0
+' Version: 1.3.0
 '
 ' Change history:
 '    2020-05-28: V1.0.0: Created.
 '    2020-06-15: V1.0.1: Clear key bytes.
 '    2022-11-07: V1.1.0: Better mixing of bytes from and to buffers.
 '    2022-11-08: V1.2.0: Name all constants.
+'    2022-11-22: V1.3.0: Use AES.Create() for cipher creation.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Security.Cryptography
 
@@ -181,11 +185,13 @@ Public Class MaskedIndex : Implements IDisposable
 
       SecurePseudoRandomNumberGenerator.GetBytes(key)
 
-      Using cipher As New AesCng With {
-         .Mode = CipherMode.ECB,
-         .Padding = PaddingMode.None,
-         .Key = key
-      }
+      Using cipher As Aes = Aes.Create()
+         With cipher
+            .Mode = CipherMode.ECB
+            .Padding = PaddingMode.None
+            .Key = key
+         End With
+
          m_Encryptor = cipher.CreateEncryptor()
       End Using
 

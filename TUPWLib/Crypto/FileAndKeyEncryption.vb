@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -27,6 +27,9 @@
 '    2020-12-16: V2.1.0: Made usage of SyncLock for disposal consistent and added check for maximum file size.
 '    2021-09-03: V2.1.1: Fortify finding: Removed unused "CheckState" method.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.IO
 

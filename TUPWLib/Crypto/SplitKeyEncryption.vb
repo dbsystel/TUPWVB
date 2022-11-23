@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -18,7 +18,7 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 2.3.3
+' Version: 2.4.0
 '
 ' Change history:
 '    2020-05-05: V1.0.0: Created.
@@ -47,7 +47,11 @@
 '    2021-09-03: V2.3.1: Fixed Fortify findings.
 '    2021-10-18: V2.3.2: Corrected names for structure properties.
 '    2021-10-18: V2.3.3: Corrected entropy threshold constant.
+'    2022-11-22: V2.4.0: Use Aes.Create() for cipher creation.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Security.Cryptography
 Imports System.Text
@@ -665,10 +669,11 @@ Public Class SplitKeyEncryption : Implements IDisposable
       ' and the "catch" part.
       '
       Try
-         Using aesCipher As New AesCng() With {
-            .Mode = CipherMode.CBC,
-            .Padding = PaddingMode.None   ' Never use any of the standard paddings!!!! They are all susceptible to a padding oracle.
-            }
+         Using aesCipher As Aes = Aes.Create()
+            With aesCipher
+               .Mode = CipherMode.CBC
+               .Padding = PaddingMode.None   ' Never use any of the standard paddings!!!! They are all susceptible to a padding oracle.
+            End With
 
             Dim blockSizeInBytes As Integer = aesCipher.BlockSize >> 3
 
@@ -897,7 +902,7 @@ Public Class SplitKeyEncryption : Implements IDisposable
    Private Shared Function GetCryptoTransformForCipherMode(aCipherMode As Byte, key As Byte(), iv As Byte()) As ICryptoTransform
       Dim result As ICryptoTransform
 
-      Using aesAlgorithm As SymmetricAlgorithm = New AesCng()
+      Using aesAlgorithm As SymmetricAlgorithm = Aes.Create()
          If aCipherMode <> COUNTER_CIPHER_MODE Then
             aesAlgorithm.Mode = CType(aCipherMode, CipherMode)
             aesAlgorithm.Padding = PaddingMode.None

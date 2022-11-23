@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,8 +25,11 @@
 '    2021-07-21: V1.0.1: Corrected visibility and instantiation of constants.
 '
 
+Option Strict On
+Option Explicit On
+
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
-Imports DB.BCM.TUPW
+Imports TUPWLib
 
 <TestClass()> Public Class SplitMix64Test
    '

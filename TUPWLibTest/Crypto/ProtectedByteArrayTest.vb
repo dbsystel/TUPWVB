@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,8 +25,11 @@
 '    2020-12-11: V1.0.1: Check for corrected exception after Dispose.
 '
 
-' Imports Microsoft.VisualStudio.TestTools.UnitTesting
-Imports DB.BCM.TUPW
+Option Strict On
+Option Explicit On
+
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports TUPWLib
 
 <TestClass()> Public Class ProtectedByteArrayTest
 #Region "Private constants"

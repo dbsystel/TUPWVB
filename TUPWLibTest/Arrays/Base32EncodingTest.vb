@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,9 +25,11 @@
 '    2021-05-12: V1.1.0: Adapt for changed exceptions.
 '
 
-' Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Option Strict On
+Option Explicit On
 
-Imports DB.BCM.TUPW
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports TUPWLib
 
 <TestClass()> Public Class Base32TestUnit
    Private Shared ReadOnly LOCAL_PRNG As New Random

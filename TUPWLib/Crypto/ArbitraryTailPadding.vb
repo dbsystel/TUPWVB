@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -24,6 +24,9 @@
 '    2020-04-23: V1.0.0: Created.
 '    2020-08-13: V1.0.1: Improved GetPaddingByteValue method.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Arbitrary tail padding for block ciphers.

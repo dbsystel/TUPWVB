@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2021 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -27,6 +27,9 @@
 '    2021-05-12: V1.2.0: Throw correct exception on invalid character.
 '    2021-05-12: V1.3.0: Direct mapping of a byte value to a char.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Converts byte arrays from and to Base32 encoding either, as specified in RFC4868, or in spell-safe format.

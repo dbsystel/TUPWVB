@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -23,6 +23,9 @@
 ' Change history:
 '    2020-05-06: V1.0.0: Created.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Numerics
 

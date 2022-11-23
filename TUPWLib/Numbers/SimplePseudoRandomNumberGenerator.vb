@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -27,6 +27,9 @@
 '    2020-05-27: V1.2.0: Refactored function value mapping into own shared class.
 '    2020-06-19: V1.2.1: Use new FunctionValueRangeMapperAPI.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Common class for a simple pseudo-random number generator that only supports getting numbers one by one.

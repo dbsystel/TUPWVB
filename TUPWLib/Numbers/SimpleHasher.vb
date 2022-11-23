@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -36,6 +36,9 @@
 '
 ' See <http://creativecommons.org/publicdomain/zero/1.0/>.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Simple hasher for various data types.

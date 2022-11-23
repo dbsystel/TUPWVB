@@ -113,13 +113,23 @@ But it is still shorter than using the hexadecimal representation of the encrypt
 
 The encrypted data can only be decrypted with the same key sources and the same subject string.
 
+## Programming
+
+The name space for the library is `TUPWLib`.
+This is a change from the former version that used another name space.
+
+The source code is compatible with `.NET 6`.
+One can use the same source code for `.NET Framework 4.8` and `.NET 6`.
+The solution (`.sln`) and project (`.vbproj`) files in this repository are made for `.NET Framework 4.8`.
+If one wants to use `.NET 6` or later one just has to set up a `.NET 6` library project and import the files in the `Arrays`, `Crypto`, `Numbers` and `Statistics` folders.
+
 ## Command Line Program
 
 One can write a command line program that uses the interface that is present in this library:
 
 ```csharp
 using System;
-using DB.BCM.TUPW;
+using TUPWLib;
 
 namespace TUPWCommandLine
 {

@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,6 +25,9 @@
 '    2020-05-27: V2.0.0: Removed unnecessary "RemovePadding" method.
 '    2020-05-29: V2.0.1: Added exception comments.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Random padding for block ciphers.

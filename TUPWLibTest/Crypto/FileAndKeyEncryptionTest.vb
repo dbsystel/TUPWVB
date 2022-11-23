@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,9 +25,12 @@
 '    2020-05-14: V1.1.0: Correct usage of Dispose interface.
 '
 
+Option Strict On
+Option Explicit On
+
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.IO
-'Imports Microsoft.VisualStudio.TestTools.UnitTesting
-Imports DB.BCM.TUPW
+Imports TUPWLib
 
 <TestClass()> Public Class FileAndKeyEncryptionTest
    ''' <summary>

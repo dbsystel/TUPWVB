@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -29,6 +29,9 @@
 '    2020-12-16: V2.0.2: Made usage of SyncLock for disposal consistent.
 '    2021-09-03: V2.1.0: Fortify finding: Dispose of symmetric encryption algorithm only if we instantiated it ourselves.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Security.Cryptography
 

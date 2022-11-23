@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -18,12 +18,16 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.0.1
+' Version: 1.1.0
 '
 ' Change history:
 '    2020-05-06: V1.0.0: Created.
 '    2020-10-26: V1.0.1: Use array literals.
+'    2022-11-22: V1.1.0: Counts are always integers.
 '
+
+Option Strict On
+Option Explicit On
 
 Imports System.Numerics
 
@@ -35,15 +39,15 @@ Imports System.Numerics
 ''' </remarks>
 Public NotInheritable Class BitManipulationHelper
 #Region "Private constants"
-   Private Const BIT_SIZE_FOR_BYTE As Byte = 8
-   Private Const BIT_SIZE_FOR_SHORT As Byte = 16
-   Private Const BIT_SIZE_FOR_INTEGER As Byte = 32
-   Private Const BIT_SIZE_FOR_LONG As Byte = 64
+   Private Const BIT_SIZE_FOR_BYTE As Integer = 8
+   Private Const BIT_SIZE_FOR_SHORT As Integer = 16
+   Private Const BIT_SIZE_FOR_INTEGER As Integer = 32
+   Private Const BIT_SIZE_FOR_LONG As Integer = 64
 
-   Private Const SHIFT_MASK_FOR_BYTE As Byte = BIT_SIZE_FOR_BYTE - 1
-   Private Const SHIFT_MASK_FOR_SHORT As Byte = BIT_SIZE_FOR_SHORT - 1
-   Private Const SHIFT_MASK_FOR_INTEGER As Byte = BIT_SIZE_FOR_INTEGER - 1
-   Private Const SHIFT_MASK_FOR_LONG As Byte = BIT_SIZE_FOR_LONG - 1
+   Private Const SHIFT_MASK_FOR_BYTE As Integer = BIT_SIZE_FOR_BYTE - 1
+   Private Const SHIFT_MASK_FOR_SHORT As Integer = BIT_SIZE_FOR_SHORT - 1
+   Private Const SHIFT_MASK_FOR_INTEGER As Integer = BIT_SIZE_FOR_INTEGER - 1
+   Private Const SHIFT_MASK_FOR_LONG As Integer = BIT_SIZE_FOR_LONG - 1
 
    Private Shared ReadOnly MASK_FOR_SIGNED_BYTE_RIGHT_SHIFT As SByte() = New SByte() {
    -1S, &H7FS, &H3FS, &H1FS, &HFS, &H7S, &H3S, &H1S
@@ -89,32 +93,32 @@ Public NotInheritable Class BitManipulationHelper
 
 #Region "Public methods"
 #Region "Unsigned shift right methods"
-   Public Shared Function UnsignedShiftRight(aValue As SByte, shiftValue As Byte) As SByte
-      Dim normalizedShiftValue As Byte = shiftValue And SHIFT_MASK_FOR_BYTE
+   Public Shared Function UnsignedShiftRight(aValue As SByte, shiftValue As Integer) As SByte
+      Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_SIGNED_BYTE_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
-   Public Shared Function UnsignedShiftRight(aValue As Short, shiftValue As Byte) As Short
-      Dim normalizedShiftValue As Byte = shiftValue And SHIFT_MASK_FOR_SHORT
+   Public Shared Function UnsignedShiftRight(aValue As Short, shiftValue As Integer) As Short
+      Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_SHORT_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
-   Public Shared Function UnsignedShiftRight(aValue As Integer, shiftValue As Byte) As Integer
-      Dim normalizedShiftValue As Byte = shiftValue And SHIFT_MASK_FOR_INTEGER
+   Public Shared Function UnsignedShiftRight(aValue As Integer, shiftValue As Integer) As Integer
+      Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_INTEGER_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
-   Public Shared Function UnsignedShiftRight(aValue As Long, shiftValue As Byte) As Long
-      Dim normalizedShiftValue As Byte = shiftValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function UnsignedShiftRight(aValue As Long, shiftValue As Integer) As Long
+      Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_LONG_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
-   Public Shared Function UnsignedShiftRightForLong(aValue As BigInteger, shiftValue As Byte) As BigInteger
-      Dim normalizedShiftValue As Byte = shiftValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function UnsignedShiftRightForLong(aValue As BigInteger, shiftValue As Integer) As BigInteger
+      Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_LONG_RIGHT_SHIFT(normalizedShiftValue)
    End Function
@@ -122,103 +126,103 @@ Public NotInheritable Class BitManipulationHelper
 
 #Region "Rotate methods"
 #Region "Rotate left methods"
-   Public Shared Function RotateLeft(aValue As SByte, rotateValue As Byte) As SByte
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_BYTE
+   Public Shared Function RotateLeft(aValue As SByte, rotateValue As Integer) As SByte
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_BYTE - normalizedShiftValue)
    End Function
 
-   Public Shared Function RotateLeft(aValue As Byte, rotateValue As Byte) As Byte
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_BYTE
+   Public Shared Function RotateLeft(aValue As Byte, rotateValue As Integer) As Byte
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue << normalizedShiftValue) Or (aValue >> (BIT_SIZE_FOR_BYTE - normalizedShiftValue))
    End Function
 
-   Public Shared Function RotateLeft(aValue As Short, rotateValue As Byte) As Short
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_SHORT
+   Public Shared Function RotateLeft(aValue As Short, rotateValue As Integer) As Short
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_SHORT - normalizedShiftValue)
    End Function
 
-   Public Shared Function RotateLeft(aValue As UShort, rotateValue As Byte) As UShort
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_SHORT
+   Public Shared Function RotateLeft(aValue As UShort, rotateValue As Integer) As UShort
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue << normalizedShiftValue) Or (aValue >> (BIT_SIZE_FOR_SHORT - normalizedShiftValue))
    End Function
 
-   Public Shared Function RotateLeft(aValue As Integer, rotateValue As Byte) As Integer
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_INTEGER
+   Public Shared Function RotateLeft(aValue As Integer, rotateValue As Integer) As Integer
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_INTEGER - normalizedShiftValue)
    End Function
 
-   Public Shared Function RotateLeft(aValue As UInteger, rotateValue As Byte) As UInteger
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_INTEGER
+   Public Shared Function RotateLeft(aValue As UInteger, rotateValue As Integer) As UInteger
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue << normalizedShiftValue) Or (aValue >> (BIT_SIZE_FOR_INTEGER - normalizedShiftValue))
    End Function
 
-   Public Shared Function RotateLeft(aValue As Long, rotateValue As Byte) As Long
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function RotateLeft(aValue As Long, rotateValue As Integer) As Long
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_LONG - normalizedShiftValue)
    End Function
 
-   Public Shared Function RotateLeft(aValue As ULong, rotateValue As Byte) As ULong
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function RotateLeft(aValue As ULong, rotateValue As Integer) As ULong
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue << normalizedShiftValue) Or (aValue >> BIT_SIZE_FOR_LONG - normalizedShiftValue)
    End Function
 
-   Public Shared Function RotateLeftForLong(aValue As BigInteger, rotateValue As Byte) As BigInteger
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function RotateLeftForLong(aValue As BigInteger, rotateValue As Integer) As BigInteger
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRightForLong(aValue, BIT_SIZE_FOR_LONG - normalizedShiftValue)
    End Function
 #End Region
 #Region "Rotate right methods"
-   Public Shared Function RotateRight(aValue As SByte, rotateValue As Byte) As SByte
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_BYTE
+   Public Shared Function RotateRight(aValue As SByte, rotateValue As Integer) As SByte
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_BYTE - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As Byte, rotateValue As Byte) As Byte
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_BYTE
+   Public Shared Function RotateRight(aValue As Byte, rotateValue As Integer) As Byte
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_BYTE - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As Short, rotateValue As Byte) As Short
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_SHORT
+   Public Shared Function RotateRight(aValue As Short, rotateValue As Integer) As Short
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_SHORT - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As UShort, rotateValue As Byte) As UShort
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_SHORT
+   Public Shared Function RotateRight(aValue As UShort, rotateValue As Integer) As UShort
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_SHORT - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As Integer, rotateValue As Byte) As Integer
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_INTEGER
+   Public Shared Function RotateRight(aValue As Integer, rotateValue As Integer) As Integer
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_INTEGER - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As UInteger, rotateValue As Byte) As UInteger
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_INTEGER
+   Public Shared Function RotateRight(aValue As UInteger, rotateValue As Integer) As UInteger
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_INTEGER - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As Long, rotateValue As Byte) As Long
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function RotateRight(aValue As Long, rotateValue As Integer) As Long
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_LONG - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRight(aValue As ULong, rotateValue As Byte) As ULong
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function RotateRight(aValue As ULong, rotateValue As Integer) As ULong
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_LONG - normalizedShiftValue))
    End Function
-   Public Shared Function RotateRightForLong(aValue As BigInteger, rotateValue As Byte) As BigInteger
-      Dim normalizedShiftValue As Byte = rotateValue And SHIFT_MASK_FOR_LONG
+   Public Shared Function RotateRightForLong(aValue As BigInteger, rotateValue As Integer) As BigInteger
+      Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return UnsignedShiftRightForLong(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_LONG - normalizedShiftValue))
    End Function

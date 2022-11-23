@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -25,7 +25,11 @@
 '    2020-05-29: V1.0.1: Test with random data.
 '
 
-Imports DB.BCM.TUPW
+Option Strict On
+Option Explicit On
+
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports TUPWLib
 
 <TestClass()> Public Class ArbitraryTailPaddingTest
 #Region "Private constants"

@@ -1,5 +1,5 @@
 ﻿'
-' SPDX-FileCopyrightText: 2020 DB Systel GmbH
+' SPDX-FileCopyrightText: 2022 DB Systel GmbH
 '
 ' SPDX-License-Identifier: Apache-2.0
 '
@@ -27,6 +27,9 @@
 '    2020-08-13: V2.0.1: Declared delegates explicitely as public.
 '    2020-08-13: V2.0.2: Cleaned up byte mask helper.
 '
+
+Option Strict On
+Option Explicit On
 
 ''' <summary>
 ''' Map function values to ranges.
