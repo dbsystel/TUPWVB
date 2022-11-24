@@ -136,7 +136,7 @@ This class has a constructor with the following signature:
 | `...` | . |   .   |  |
 | `sourceBytes n` | `Byte()` |      |  |
 
-The instance creates can then be called with any of the following methods:
+The instance created can then be used for encryption and decryption.
 
 #### Encryption
 
