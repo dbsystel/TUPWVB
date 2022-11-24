@@ -187,7 +187,7 @@ It is preferable to use the methods with byte and character arrays.
 
 ### Usage with files as source bytes
 
-Aditionally, there is a class `FileAndKeyEncryption` where the constructor uses the following parameters:
+Aditionally, there is a class `TUPWLib.FileAndKeyEncryption` where the constructor uses the following parameters:
 
 | Parameter     | Type   | Length | Meaning |
 | ------------- | ------ | ------ | ------- |
