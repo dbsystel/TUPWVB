@@ -18,12 +18,13 @@
 '
 ' Author: Frank Schwab, DB Systel GmbH
 '
-' Version: 1.1.0
+' Version: 1.1.1
 '
 ' Change history:
 '    2020-05-06: V1.0.0: Created.
 '    2020-10-26: V1.0.1: Use array literals.
 '    2022-11-22: V1.1.0: Counts are always integers.
+'    2022-11-25: V1.1.1: Added method comments.
 '
 
 Option Strict On
@@ -93,30 +94,60 @@ Public NotInheritable Class BitManipulationHelper
 
 #Region "Public methods"
 #Region "Unsigned shift right methods"
+   ''' <summary>
+   ''' Logical shift right with zero bits filling from the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to be logically shifted right.</param>
+   ''' <param name="shiftValue">Number of bits to shift right.</param>
+   ''' <returns><paramref name="aValue"/> shifted right <paramref name="shiftValue"/> bits with zero bit filling from the left.</returns>
    Public Shared Function UnsignedShiftRight(aValue As SByte, shiftValue As Integer) As SByte
       Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_SIGNED_BYTE_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Logical shift right with zero bits filling from the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to be logically shifted right.</param>
+   ''' <param name="shiftValue">Number of bits to shift right.</param>
+   ''' <returns><paramref name="aValue"/> shifted right <paramref name="shiftValue"/> bits with zero bit filling from the left.</returns>
    Public Shared Function UnsignedShiftRight(aValue As Short, shiftValue As Integer) As Short
       Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_SHORT_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Logical shift right with zero bits filling from the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to be logically shifted right.</param>
+   ''' <param name="shiftValue">Number of bits to shift right.</param>
+   ''' <returns><paramref name="aValue"/> shifted right <paramref name="shiftValue"/> bits with zero bit filling from the left.</returns>
    Public Shared Function UnsignedShiftRight(aValue As Integer, shiftValue As Integer) As Integer
       Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_INTEGER_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Logical shift right with zero bits filling from the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to be logically shifted right.</param>
+   ''' <param name="shiftValue">Number of bits to shift right.</param>
+   ''' <returns><paramref name="aValue"/> shifted right <paramref name="shiftValue"/> bits with zero bit filling from the left.</returns>
    Public Shared Function UnsignedShiftRight(aValue As Long, shiftValue As Integer) As Long
       Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue >> normalizedShiftValue) And MASK_FOR_LONG_RIGHT_SHIFT(normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Logical shift right with zero bits filling from the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to be logically shifted right.</param>
+   ''' <param name="shiftValue">Number of bits to shift right.</param>
+   ''' <returns><paramref name="aValue"/> shifted right <paramref name="shiftValue"/> bits with zero bit filling from the left.</returns>
    Public Shared Function UnsignedShiftRightForLong(aValue As BigInteger, shiftValue As Integer) As BigInteger
       Dim normalizedShiftValue As Integer = shiftValue And SHIFT_MASK_FOR_LONG
 
@@ -126,101 +157,218 @@ Public NotInheritable Class BitManipulationHelper
 
 #Region "Rotate methods"
 #Region "Rotate left methods"
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As SByte, rotateValue As Integer) As SByte
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_BYTE - normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As Byte, rotateValue As Integer) As Byte
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue << normalizedShiftValue) Or (aValue >> (BIT_SIZE_FOR_BYTE - normalizedShiftValue))
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As Short, rotateValue As Integer) As Short
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_SHORT - normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As UShort, rotateValue As Integer) As UShort
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue << normalizedShiftValue) Or (aValue >> (BIT_SIZE_FOR_SHORT - normalizedShiftValue))
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As Integer, rotateValue As Integer) As Integer
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_INTEGER - normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As UInteger, rotateValue As Integer) As UInteger
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue << normalizedShiftValue) Or (aValue >> (BIT_SIZE_FOR_INTEGER - normalizedShiftValue))
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As Long, rotateValue As Integer) As Long
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRight(aValue, BIT_SIZE_FOR_LONG - normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateLeft(aValue As ULong, rotateValue As Integer) As ULong
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue << normalizedShiftValue) Or (aValue >> BIT_SIZE_FOR_LONG - normalizedShiftValue)
    End Function
 
+   ''' <summary>
+   ''' Rotate a value to the left where the number is treated as a <code>Long</code> value.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated left by <paramref name="rotateValue"/> bits as if it were a <c>Long</c> value.</returns>
    Public Shared Function RotateLeftForLong(aValue As BigInteger, rotateValue As Integer) As BigInteger
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue << normalizedShiftValue) Or UnsignedShiftRightForLong(aValue, BIT_SIZE_FOR_LONG - normalizedShiftValue)
    End Function
 #End Region
+
 #Region "Rotate right methods"
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As SByte, rotateValue As Integer) As SByte
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_BYTE - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As Byte, rotateValue As Integer) As Byte
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_BYTE
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_BYTE - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As Short, rotateValue As Integer) As Short
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_SHORT - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As UShort, rotateValue As Integer) As UShort
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_SHORT
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_SHORT - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As Integer, rotateValue As Integer) As Integer
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_INTEGER - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As UInteger, rotateValue As Integer) As UInteger
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_INTEGER
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_INTEGER - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As Long, rotateValue As Integer) As Long
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return UnsignedShiftRight(aValue, normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_LONG - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits.</returns>
    Public Shared Function RotateRight(aValue As ULong, rotateValue As Integer) As ULong
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
       Return (aValue >> normalizedShiftValue) Or (aValue << (BIT_SIZE_FOR_LONG - normalizedShiftValue))
    End Function
+
+   ''' <summary>
+   ''' Rotate a value to the right where the number is treated as a <code>Long</code> value.
+   ''' </summary>
+   ''' <param name="aValue">Value to rotate.</param>
+   ''' <param name="rotateValue">Number of bits to rotate.</param>
+   ''' <returns><paramref name="aValue"/> rotated right by <paramref name="rotateValue"/> bits as if it were a <c>Long</c> value.</returns>
    Public Shared Function RotateRightForLong(aValue As BigInteger, rotateValue As Integer) As BigInteger
       Dim normalizedShiftValue As Integer = rotateValue And SHIFT_MASK_FOR_LONG
 
